@@ -27,6 +27,10 @@ def process_age_and_gender(df):
             df.at[i,'age'] = int(float(age))
 
     df.update(df_clean)
-    df.bfill(inplace=True)
+    df['age'].bfill(inplace=True)
+    df['sex'].bfill(inplace=True)
+    print(df['age'])
+    print(df['sex'])
+    print(df['country'])
 
 process_age_and_gender(df)
