@@ -6,38 +6,27 @@ import math
 df = pd.read_csv('./cases_train.csv')
 
 def process_age_and_gender(df):
-    print (type(df['age'][0]))
     df_clean = df[df['age'].notnull()]
-    ages = []
-    for i in df_clean['age']:
-        ages.append(i)
-    idx = 0
-    for i in range(0,len(df['age'])):
-        if '-' in ages[idx]:
-            age_range = ages[idx].split('-')
-            if df['age'][i] == ages[idx]:
-                idx += 1
-            if age_range[1] != '':
-                df.loc[i,'age'] = random.randint(int(age_range[0]), int(age_range[1]))
+    for i, row in df_clean.iterrows():
+        age = row['age']
+        if '-' in age:
+            age_range = age.split('-')
+            if age_range[1] != '' or age_range[1].isnumeric():
+                df_clean.at[i,'age'] = random.randint(int(age_range[0]), int(age_range[1]))
             else:
-                df.loc[i,'age'] = int(age_range[0])
-        elif '+' in ages[idx]:
-            over_80 = int(ages[idx][:-1])
-
-            if df['age'][i] == ages[idx]:
-                idx += 1
-            df.loc[i,'age'] = over_80
+                df_clean.at[i,'age'] = int(age_range[0])
+        elif '+' in age:
+            df.at[i,'age'] = int(age[:-1])
+        elif ' ' in age:
+            age_range = age.split(' ')
+            if age_range[1] != '' and age_range[1].isnumeric():
+                df_clean.at[i,'age'] = random.randint(int(age_range[0]), int(age_range[1]))
+            else:
+                df_clean.at[i,'age'] = int(age_range[0])
         else:
-            age = int(float(ages[idx]))
-            if df['age'][i] == ages[idx]:
-                idx += 1
-            df.loc[i,'age'] = age
-        
-    print(df)
+            df.at[i,'age'] = int(float(age))
 
+    df.update(df_clean)
+    df.bfill(inplace=True)
 
-
-
-    print(df_clean)
-    age_gender = {}
 process_age_and_gender(df)
