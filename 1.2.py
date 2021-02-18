@@ -128,6 +128,6 @@ dropLatLong = df.dropna(subset=['latitude','longitude'])
 filled_gender_df = find_gender_outcome(dropLatLong)
 filled_country_df = fill_country(dropLatLong)
 filled_age_df = process_age(filled_gender_df)
-filled_age_df.to_csv('./cleaned_cases_train.csv')
+filled_age_df.to_csv('./cleaned_cases_train.csv',index=False)
 
 

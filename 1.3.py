@@ -17,7 +17,6 @@ plt.plot(curve, norm.pdf(curve,df['age'].mean(),df['age'].std()))
 plt.show()
 
 df['zscore'] = (df['age']-df['age'].mean())/df['age'].std()
-df_age_outliers = df[df['zscore'] > -3]
-df_age_outliers = df_age_outliers[df[df_age_outliers['zscore']] < 4]
-
-print(df_age_outliers)
+df_age_outliers = df[(df['zscore'] > -3) & (df['zscore'] < 4)]
+clean_df = df_age_outliers.drop(columns=['zscore'])
+print(clean_df)
