@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
 df = pd.read_csv('./cases_train.csv')
+pd.options.mode.chained_assignment = None  # default='warn'
 
 def find_gender_outcome(df):
     majorities = {}
@@ -26,7 +27,7 @@ def find_gender_outcome(df):
     def fill_empty(row):
         return majorities[row['outcome']]
 
-    gender_na['sex'] = gender_na.apply(fill_empty, axis=1)
+    gender_na['filled_sex'] = gender_na.apply(fill_empty, axis=1)
     df.update(gender_na)
     return df
 
@@ -42,7 +43,7 @@ def process_age(df):
                 return row['age']
         return row['age']
 
-    df['age'] = df.apply(clean_month_format, axis=1)
+    df['parse_age_months'] = df.apply(clean_month_format, axis=1)
 
     #Clear odd formats for ages
     df_clean = df.dropna(subset=['age'])
@@ -58,12 +59,11 @@ def process_age(df):
             return int(age[:-1])
         elif ' ' in age:
             age_range = age.split(' ')
-            if age_range[1] != '' and age_range[1].isnumeric():
-                return round((int(age_range[0]) + int(age_range[1]))/2)
-            else:
-                return int(age_range[0])
+            if age_range[1] != '' and age_range[1].isalpha():
+                print(round(int(age_range[0])*0.10))
+                return round(int(age_range[0])*0.10)
         else:
-            return int(float(age))
+            return int(round(float(age)))
 
     df_clean['age'] = df_clean.apply(clean_age_format, axis=1)
     df_clean = df_clean.dropna(subset=['age'])
@@ -98,37 +98,69 @@ def process_age(df):
 
     #Using dict, fill age based on the average ages from province, countries
     def match_country(row, provinces,countries, avg):
-            if row['province'] in provinces:
-                return provinces[row['province']]
-            elif row['country'] in countries:
-                return countries[row['country']]
-            else:
-                return str(avg)
+        if row['province'] in provinces:
+            return provinces[row['province']]
+        elif row['country'] in countries:
+            return countries[row['country']]
+        else:
+            return str(avg)
     empty_frames = df[df['age'].isna()]
     empty_frames['age'] = empty_frames.apply(match_country, axis=1, args=(province_ages,country_ages,median_to_fill))
     df.update(empty_frames)
-
     return df
 
-def fill_country(df):
+def parse_dates(df):
+    date_df = df['date_confirmation'].value_counts().idxmax(skipna=True)
+    print(str(date_df))
+    filled_df = df['date_confirmation'].fillna(str(date_df))
+    df.update(filled_df)
+    def split_date(row):
+        date = row['date_confirmation']
+        if '-' in date:
+            return date.split('-')[0]
+        return row['date_confirmation']
+
+    df['new_date_confirmation'] = df.apply(split_date, axis=1)
+    return df
+
+def fill_country_province(df):
     country_na = df[df['country'].isna()]
     geolocator = Nominatim(user_agent="Cmpt459")
     def find_country(row):
         lat = row['latitude']
         long = row['longitude']
-        print(str(lat) + " " + str(long))
         coords = str(lat) + ", " + str(long)
         addr = geolocator.reverse(coords, language="en")
         return addr[0].split()[-1]
-    country_na['country'] = country_na.apply(find_country, axis=1)
+    country_na['filled_country'] = country_na.apply(find_country, axis=1)
     df.update(country_na)
+
+    province_na = df[df['province'].isna()]
+    def find_province(row):
+        lat = row['latitude']
+        long = row['longitude']
+        coords = str(lat) + ", " + str(long)
+        addr = geolocator.reverse(coords, language="en")
+        if addr == None:
+            print(row['country'])
+            return np.nan
+
+        addr_split = addr[0].split(',')
+        if len(addr_split) < 2:
+            return addr_split[-1]
+        else:
+            return addr_split[-2]
+
+    province_na['filled_province'] = province_na.apply(find_province,axis=1)
     return df
 
 #drop missing lat and long rows
 dropLatLong = df.dropna(subset=['latitude','longitude'])
-#filled_gender_df = find_gender_outcome(dropLatLong)
-filled_country_df = fill_country(dropLatLong)
-# filled_age_df = process_age(filled_gender_df)
-#filled_age_df.to_csv('./cleaned_cases_train.csv',index=False)
+filled_gender_df = find_gender_outcome(dropLatLong)
+filled_country_df = fill_country_province(filled_gender_df)
+filled_age_df = process_age(filled_country_df)
+clean_date_df = parse_dates(dropLatLong)
+
+clean_date_df.to_csv('./cleaned_cases_train.csv',index=False)
 
 
