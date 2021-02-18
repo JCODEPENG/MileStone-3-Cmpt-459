@@ -115,9 +115,10 @@ def fill_country(df):
     geolocator = Nominatim(user_agent="Cmpt459")
     def find_country(row):
         lat = row['latitude']
-        long = row['latitude']
+        long = row['longitude']
+        print(str(lat) + " " + str(long))
         coords = str(lat) + ", " + str(long)
-        addr = geolocator.reverse(coords)
+        addr = geolocator.reverse(coords, language="en")
         return addr[0].split()[-1]
     country_na['country'] = country_na.apply(find_country, axis=1)
     df.update(country_na)
@@ -125,9 +126,9 @@ def fill_country(df):
 
 #drop missing lat and long rows
 dropLatLong = df.dropna(subset=['latitude','longitude'])
-filled_gender_df = find_gender_outcome(dropLatLong)
+#filled_gender_df = find_gender_outcome(dropLatLong)
 filled_country_df = fill_country(dropLatLong)
-filled_age_df = process_age(filled_gender_df)
-filled_age_df.to_csv('./cleaned_cases_train.csv',index=False)
+# filled_age_df = process_age(filled_gender_df)
+#filled_age_df.to_csv('./cleaned_cases_train.csv',index=False)
 
 
