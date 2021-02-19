@@ -9,8 +9,9 @@ from geopy.geocoders import Nominatim
 import step2_missingvals, step3_outliers, step4_transform
 
 def main():
-    # step2_missingvals.run_miss_va()
-    # step3_outliers.remove_outliers()
+    step2_missingvals.run_miss_va()
+    step3_outliers.remove_outliers()
+    #us_transformed_df = transform_location_data()
     step4_transform.transform_location_data()
 
 
