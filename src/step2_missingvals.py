@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
 df = pd.read_csv('../data/cases_train.csv')
+test_df = pd.read_csv('../data/cases_test.csv')
 pd.options.mode.chained_assignment = None  # default='warn'
 
 def find_gender_outcome(df):
@@ -26,6 +27,52 @@ def find_gender_outcome(df):
 
     def fill_empty(row):
         return majorities[row['outcome']]
+
+    gender_na['filled_sex'] = gender_na.apply(fill_empty, axis=1)
+    df['filled_sex'] = df['sex']
+    df.update(gender_na)
+    return df
+
+
+
+
+def find_gender_outcome_test(df):
+    majorities = {}
+    majority_gender = ''
+    male_rows = df[df['sex'] == 'male']
+    female_rows = df[df['sex'] =='female']
+    if (len(male_rows) > len(female_rows)):
+        majority_gender = 'male'
+    else:
+        majority_gender = 'female'
+    # get unique outcomes for male and female
+    male_country_vals, male_count = np.unique(male_rows['country_filled'], return_counts=True)
+    female_country_vals, female_count = np.unique(female_rows['country_filled'], return_counts=True)
+
+    # for i in range(0,len(male_country_vals)):
+    #     male_country_percentage = male_count[i] / len(male_rows['sex'])
+    #     female_country_percentage = female_count[i]/len(female_rows['sex'])
+    #     if male_country_percentage > female_country_percentage:
+    #         majorities[male_country_vals[i]] = 'male'
+    #     else:
+    #         majorities[female_country_vals[i]] = 'female'
+
+    gender_na = df[df['sex'].isna()]
+
+    def fill_empty(row):
+        if row['country_filled'] in male_country_vals and row['country_filled'] not in female_country_vals:
+            return 'male'
+        elif row['country_filled'] in female_country_vals and row['country_filled'] not in male_country_vals:
+            return 'female'
+        elif row['country_filled'] not in male_country_vals and row['country_filled'] not in female_country_vals:
+            return majority_gender
+        else:
+            find_male_idx = np.where(male_country_vals == row['country_filled'])
+            find_female_idx = np.where(female_country_vals == row['country_filled'])
+            if male_count[find_male_idx[0][0]]/len(male_rows['sex']) >= female_count[find_female_idx[0][0]]/len(female_rows['sex']):
+                return 'male'
+            else:
+                return 'female'
 
     gender_na['filled_sex'] = gender_na.apply(fill_empty, axis=1)
     df['filled_sex'] = df['sex']
@@ -75,12 +122,12 @@ def process_age(df):
     df['age_formatted'] = df['age_parse_months']
     df.update(df_clean)
     #Partition average age for each country and province and store them as dict
-    map_df = df.dropna(subset=['province','country'])
+    map_df = df.dropna(subset=['province_filled','country_filled'])
     province_ages = {}
-    province = np.unique(map_df['province'])
+    province = np.unique(map_df['province_filled'])
     for name in province:
         if name != 'nan':
-            ds = map_df[map_df['province'] == name]
+            ds = map_df[map_df['province_filled'] == name]
             new_ds = ds['age_formatted'].dropna()
             if len(new_ds) > 0:
                 province_ages[name] = np.sum(new_ds)//len(new_ds)
@@ -88,13 +135,12 @@ def process_age(df):
                 province_ages[name] = median_to_fill
 
     country_ages = {}
-    country = np.unique(map_df['country'])
+    country = np.unique(map_df['country_filled'])
     for name in country:
         if name != 'nan':
-            ds = map_df[map_df['country'] == name]
+            ds = map_df[map_df['country_filled'] == name]
             new_ds = ds['age_formatted'].dropna()
             if len(new_ds) > 0:
-
                 country_ages[name] = np.sum(new_ds)//len(new_ds)
             else:
                 country_ages[name] = median_to_fill
@@ -102,10 +148,10 @@ def process_age(df):
 
     #Using dict, fill age based on the average ages from province, countries
     def match_country(row, provinces,countries, avg):
-        if row['province'] in provinces:
-            return provinces[row['province']]
-        elif row['country'] in countries:
-            return countries[row['country']]
+        if row['province_filled'] in provinces:
+            return provinces[row['province_filled']]
+        elif row['country_filled'] in countries:
+            return countries[row['country_filled']]
         else:
             return str(avg)
 
@@ -180,4 +226,15 @@ def run_miss_va():
     #
     clean_date_df.to_csv('../data/cleaned_cases_train.csv',index=False)
 
+
+    dropLatLong_test = test_df.dropna(subset=['latitude','longitude'])
+    print('Filling missing countries and ages...')
+    filled_country_df = fill_country_province(dropLatLong_test)
+    print('Filling missing genders...')
+    filled_gender_df = find_gender_outcome_test(filled_country_df)
+    print('Filling missing ages...')
+    filled_age_df = process_age((filled_gender_df))
+    print('Filling missing dates...')
+    clean_date_df = parse_dates((filled_age_df))
+    clean_date_df.to_csv('../data/cleaned_cases_test.csv', index=False)
 

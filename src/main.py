@@ -9,7 +9,7 @@ from src import step2_missingvals, step3_outliers
 #from step4_transform import *
 
 def main():
-    step2_missingvals.run_miss_va()
+    #step2_missingvals.run_miss_va()
     step3_outliers.remove_outliers()
     #us_transformed_df = transform_location_data()
 
