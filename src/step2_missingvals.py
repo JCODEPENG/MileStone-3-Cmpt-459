@@ -224,7 +224,7 @@ def run_miss_va():
     print('Filling missing dates...')
     clean_date_df = parse_dates(filled_age_df)
     #
-    clean_date_df.to_csv('../data/cleaned_cases_train.csv',index=False)
+    clean_date_df.to_csv('../results/cleaned_cases_train.csv',index=False)
 
 
     dropLatLong_test = test_df.dropna(subset=['latitude','longitude'])

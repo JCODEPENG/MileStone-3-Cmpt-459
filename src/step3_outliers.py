@@ -4,7 +4,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 def remove_outliers():
-    df = pd.read_csv('../data/cleaned_cases_train.csv')
+    df = pd.read_csv('../results/cleaned_cases_train.csv')
     plt.hist(df['age_filled'], bins=20, rwidth=0.5)
     plt.xlabel('Age')
     plt.ylabel('Count')
@@ -24,7 +24,7 @@ def remove_outliers():
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
 
     clean_province_outliers = clean_age_outliers.dropna(subset=['province_filled'])
-    clean_province_outliers.to_csv("../data/cleaned_outliers_train.csv", index=False)
+    clean_province_outliers.to_csv("../results/cleaned_outliers_train.csv", index=False)
 
 
 
