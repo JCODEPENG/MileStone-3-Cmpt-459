@@ -4,22 +4,27 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 df = pd.read_csv('./cleaned_cases_train.csv')
-plt.hist(df['age'], bins=20, rwidth=0.5)
+plt.hist(df['age_filled'], bins=20, rwidth=0.5)
 plt.xlabel('Age')
 plt.ylabel('Count')
 plt.title('General Age Groups')
 plt.show()
 
-plt.hist(df['age'], bins=20, rwidth=0.5, density=True)
+plt.hist(df['age_filled'], bins=20, rwidth=0.5, density=True)
 plt.xlabel('Age')
 plt.ylabel('Count')
 plt.title('Normal distribution of Age Groups')
-curve = np.arange(df['age'].min(),df['age'].max(),0.1)
-plt.plot(curve, norm.pdf(curve,df['age'].mean(),df['age'].std()))
+curve = np.arange(df['age_filled'].min(),df['age_filled'].max(),0.1)
+plt.plot(curve, norm.pdf(curve,df['age_filled'].mean(),df['age_filled'].std()))
 plt.show()
 
-df['zscore'] = (df['age']-df['age'].mean())/df['age'].std()
+df['zscore'] = (df['age_filled']-df['age_filled'].mean())/df['age_filled'].std()
 df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
-print(df[(df['zscore'] < -4)])
-clean_df = df_age_outliers.drop(columns=['zscore'])
-print(clean_df)
+clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
+
+print(clean_age_outliers[clean_age_outliers['province_filled'].isna()])
+clean_province_outliers = clean_age_outliers.dropna(subset=['province_filled'])
+
+clean_province_outliers.to_csv("cleaned_outliers_train.csv")
+
+
