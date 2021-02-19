@@ -25,7 +25,7 @@ def remove_outliers():
 
     print(clean_age_outliers[clean_age_outliers['province_filled'].isna()])
     clean_province_outliers = clean_age_outliers.dropna(subset=['province_filled'])
-    clean_province_outliers.to_csv("../data/cleaned_outliers_train.csv")
+    clean_province_outliers.to_csv("../data/cleaned_outliers_train.csv", index=False)
 
 
 
