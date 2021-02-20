@@ -210,21 +210,21 @@ def fill_country_province(df):
 
 def run_miss_va():
     #drop missing lat and long rows
-    dropLatLong = df.dropna(subset=['latitude','longitude'])
-
-    print('Filling missing genders...')
-    filled_gender_df = find_gender_outcome(dropLatLong)
-
-    print('Filling missing countries and ages...')
-    filled_country_df = fill_country_province(filled_gender_df)
-
-    print('Filling missing ages...')
-    filled_age_df = process_age(filled_country_df)
-
-    print('Filling missing dates...')
-    clean_date_df = parse_dates(filled_age_df)
+    # dropLatLong = df.dropna(subset=['latitude','longitude'])
     #
-    clean_date_df.to_csv('../results/cleaned_cases_train.csv',index=False)
+    # print('Filling missing genders...')
+    # filled_gender_df = find_gender_outcome(dropLatLong)
+    #
+    # print('Filling missing countries and ages...')
+    # filled_country_df = fill_country_province(filled_gender_df)
+    #
+    # print('Filling missing ages...')
+    # filled_age_df = process_age(filled_country_df)
+    #
+    # print('Filling missing dates...')
+    # clean_date_df = parse_dates(filled_age_df)
+    # #
+    # clean_date_df.to_csv('../results/cleaned_cases_train.csv',index=False)
 
 
     dropLatLong_test = test_df.dropna(subset=['latitude','longitude'])
@@ -236,5 +236,5 @@ def run_miss_va():
     filled_age_df = process_age((filled_gender_df))
     print('Filling missing dates...')
     clean_date_df = parse_dates((filled_age_df))
-    clean_date_df.to_csv('../data/cleaned_cases_test.csv', index=False)
+    clean_date_df.to_csv('../results/cleaned_cases_test.csv', index=False)
 
