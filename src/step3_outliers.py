@@ -23,6 +23,11 @@ def remove_outliers():
     df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
 
+    plt.figure()
+    plt.title('Total Provinces')
+    plt.ylabel('Count')
+    plt.xlabel('Provinces')
+    plt['provinces_filled'].hist()
     clean_province_outliers = clean_age_outliers.dropna(subset=['province_filled'])
     clean_province_outliers.to_csv("../results/cleaned_outliers_train.csv", index=False)
 
