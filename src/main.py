@@ -9,8 +9,8 @@ from geopy.geocoders import Nominatim
 import step2_missingvals, step3_outliers, step4_transform, step5_join
 
 def main():
-    step2_missingvals.run_miss_va()
-    # step3_outliers.remove_outliers()
+    # step2_missingvals.run_miss_va()
+    step3_outliers.remove_outliers()
     # step4_transform.transform_location_data()
     # step5_join.join_cases_with_locations()
     # df = pd.read_csv('../data/cases_train.csv')
