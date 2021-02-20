@@ -25,7 +25,7 @@ def group_by_us_state(df):
                                             'Last_Update': lambda x: pd.Series.mode(x)[0], \
                                             'Lat': 'mean','Long_': 'mean', 'Confirmed': 'sum', 'Deaths': 'sum', \
                                             'Recovered': 'sum', 'Active': 'sum', \
-                                            'Combined_Key': lambda x: pd.Series.mode(x)[0], \
+                                            'Combined_Key': lambda x: ','.join(pd.Series.mode(x)[0].split(',')[1:]).strip(), \
                                             'Incidence_Rate': 'sum', 'percent_confirmed': 'sum', \
                                             'case_fat_ratio_multiplied': 'sum'})
     return df
