@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from geopy.geocoders import Nominatim
-df = pd.read_csv('../data/cases_train.csv')
+train_df = pd.read_csv('../data/cases_train.csv')
 test_df = pd.read_csv('../data/cases_test.csv')
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -177,45 +177,44 @@ def parse_dates(df):
     return df
 
 def fill_country_province(df):
-    country_na = df[df['country'].isna()]
     geolocator = Nominatim(user_agent="Cmpt459")
-    def find_country(row):
+    df['country_filled'] = df.apply(find_country,axis=1, geolocator=geolocator)
+    df['province_filled'] = df.apply(find_province,axis=1, geolocator=geolocator)
+    return df
+
+def find_country(row, geolocator):
+    if str(row['country']) == 'nan':
         lat = row['latitude']
         long = row['longitude']
         coords = str(lat) + ", " + str(long)
         addr = geolocator.reverse(coords, language="en")
         return addr[0].split()[-1]
-    country_na['country'] = country_na.apply(find_country, axis=1)
-    df['country_filled'] = df['country']
-    df.update(country_na)
-    province_na = df[df['province'].isna()]
-    def find_province(row):
+    return row['country']
+
+def find_province(row, geolocator):
+    if str(row['province']) == 'nan':
         lat = row['latitude']
         long = row['longitude']
         coords = str(lat) + ", " + str(long)
         addr = geolocator.reverse(coords, language="en")
         if addr == None:
             return np.nan
-
         addr_split = addr[0].split(',')
         if len(addr_split) < 2:
             return addr_split[-1]
         else:
             return addr_split[-2]
-
-    province_na['province_filled'] = province_na.apply(find_province,axis=1)
-    df['province_filled'] = df['province']
-    df.update(province_na)
-    return df
+    return row['province']
 
 def run_miss_va():
+    print('Cleaning training data set')
     #drop missing lat and long rows
-    dropLatLong = df.dropna(subset=['latitude','longitude'])
+    dropLatLong = train_df.dropna(subset=['latitude','longitude'])
 
     print('Filling missing genders...')
     filled_gender_df = find_gender_outcome(dropLatLong)
 
-    print('Filling missing countries and ages...')
+    print('Filling missing countries and provinces...')
     filled_country_df = fill_country_province(filled_gender_df)
 
     print('Filling missing ages...')
@@ -223,12 +222,12 @@ def run_miss_va():
 
     print('Filling missing dates...')
     clean_date_df = parse_dates(filled_age_df)
-    #
+
     clean_date_df.to_csv('../results/cleaned_cases_train.csv',index=False)
 
-
+    print('\nCleaning training data set')
     dropLatLong_test = test_df.dropna(subset=['latitude','longitude'])
-    print('Filling missing countries and ages...')
+    print('Filling missing countries and provinces...')
     filled_country_df = fill_country_province(dropLatLong_test)
     print('Filling missing genders...')
     filled_gender_df = find_gender_outcome_test(filled_country_df)
