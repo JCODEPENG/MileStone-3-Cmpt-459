@@ -59,6 +59,6 @@ def transform_location_data():
     df['case_fatality_ratio_allocated'] = df['case_fat_ratio_multiplied'] / df['Confirmed']
     df = concat_us_to_other_data(df_all, df)
     # print(df)
-    df.to_csv("../results/transformed_location.csv", index=False)
+    df.to_csv("../results/location_transformed.csv", index=False)
 
 
