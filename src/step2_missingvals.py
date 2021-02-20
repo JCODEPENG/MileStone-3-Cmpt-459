@@ -236,5 +236,5 @@ def run_miss_va():
     filled_age_df = process_age((filled_gender_df))
     print('Filling missing dates...')
     clean_date_df = parse_dates((filled_age_df))
-    clean_date_df.to_csv('../data/cleaned_cases_test.csv', index=False)
+    clean_date_df.to_csv('../results/cleaned_cases_test.csv', index=False)
 
