@@ -25,7 +25,7 @@ def group_by_us_state(df):
                                             'Last_Update': lambda x: pd.Series.mode(x)[0], \
                                             'Lat': 'mean','Long_': 'mean', 'Confirmed': 'sum', 'Deaths': 'sum', \
                                             'Recovered': 'sum', 'Active': 'sum', \
-                                            'Combined_Key': lambda x: pd.Series.mode(x)[0], \
+                                            'Combined_Key': lambda x: ','.join(pd.Series.mode(x)[0].split(',')[1:]).strip(), \
                                             'Incidence_Rate': 'sum', 'percent_confirmed': 'sum', \
                                             'case_fat_ratio_multiplied': 'sum'})
     return df
@@ -59,6 +59,6 @@ def transform_location_data():
     df['case_fatality_ratio_allocated'] = df['case_fat_ratio_multiplied'] / df['Confirmed']
     df = concat_us_to_other_data(df_all, df)
     # print(df)
-    df.to_csv("../results/transformed_location.csv", index=False)
+    df.to_csv("../results/location_transformed.csv", index=False)
 
 
