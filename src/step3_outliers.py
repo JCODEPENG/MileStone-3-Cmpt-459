@@ -4,7 +4,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 def remove_outliers():
-    # inspired by https://www.youtube.com/watch?v=KFuEAGR3HS4&ab_channel=codebasics for age
+    # normal distribution referenced from https://www.youtube.com/watch?v=KFuEAGR3HS4&ab_channel=codebasics for age
     df = pd.read_csv('../results/cleaned_cases_train.csv')
     plt.hist(df['age_filled'], bins=20, rwidth=0.5)
     plt.xlabel('Age')
