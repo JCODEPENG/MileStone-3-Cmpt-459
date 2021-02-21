@@ -21,14 +21,14 @@ def remove_outliers():
     plt.show()
 
     df['zscore'] = (df['age_filled']-df['age_filled'].mean())/df['age_filled'].std()
+
     df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
 
-    #
-
     print ("The outlier columns for age: ")
     print (df[(df['zscore'] < -4) | (df['zscore'] > 4)])
-
+    #
+    
     print("The outlier count for provinces (nan value count for province)")
     print(str(clean_age_outliers['province_filled'].isna().sum()) + " outliers for province_filled")
 
