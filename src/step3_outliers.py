@@ -4,7 +4,7 @@ from scipy.stats import norm
 import matplotlib.pyplot as plt
 
 def remove_outliers():
-    # normal distribution referenced from https://www.youtube.com/watch?v=KFuEAGR3HS4&ab_channel=codebasics for age
+    # normal distribution method referenced from https://www.youtube.com/watch?v=KFuEAGR3HS4&ab_channel=codebasics for age
     df = pd.read_csv('../results/cleaned_cases_train.csv')
     plt.hist(df['age_filled'], bins=20, rwidth=0.5)
     plt.xlabel('Age')
@@ -23,6 +23,8 @@ def remove_outliers():
     df['zscore'] = (df['age_filled']-df['age_filled'].mean())/df['age_filled'].std()
     df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
+
+    #
 
     print ("The outlier columns for age: ")
     print (df[(df['zscore'] < -4) | (df['zscore'] > 4)])
