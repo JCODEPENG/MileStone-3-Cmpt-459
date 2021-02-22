@@ -27,7 +27,7 @@ def remove_outliers():
     df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
     #
-    print ("The outlier columns for age: ")
+    print ("The outliers for age: ")
     print (df[(df['zscore'] < -4) | (df['zscore'] > 4)])
 
     print("The outlier count for provinces (nan value count for province)")
