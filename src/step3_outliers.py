@@ -10,7 +10,8 @@ def remove_outliers():
     plt.xlabel('Age')
     plt.ylabel('Count')
     plt.title('General Age Groups')
-    plt.show()
+    plt.savefig('../plots/age_plot.png')
+    plt.cla()
 
     plt.hist(df['age_filled'], bins=20, rwidth=0.5, density=True)
     plt.xlabel('Age')
@@ -18,17 +19,17 @@ def remove_outliers():
     plt.title('Normal distribution of Age Groups')
     curve = np.arange(df['age_filled'].min(),df['age_filled'].max(),0.1)
     plt.plot(curve, norm.pdf(curve,df['age_filled'].mean(),df['age_filled'].std()))
-    plt.show()
+    plt.savefig('../plots/age_normal.png')
+    plt.cla()
 
     df['zscore'] = (df['age_filled']-df['age_filled'].mean())/df['age_filled'].std()
 
     df_age_outliers = df[(df['zscore'] > -4) & (df['zscore'] < 4)]
     clean_age_outliers = df_age_outliers.drop(columns=['zscore'])
-
+    #
     print ("The outlier columns for age: ")
     print (df[(df['zscore'] < -4) | (df['zscore'] > 4)])
-    #
-    
+
     print("The outlier count for provinces (nan value count for province)")
     print(str(clean_age_outliers['province_filled'].isna().sum()) + " outliers for province_filled")
 

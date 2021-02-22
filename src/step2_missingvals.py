@@ -215,6 +215,7 @@ def run_miss_va():
     filled_gender_df = find_gender_outcome(dropLatLong)
 
     print('Filling missing countries and provinces...')
+    print('WARNING: This process may take around 30-40 mins due to the use of geopy')
     filled_country_df = fill_country_province(filled_gender_df)
 
     print('Filling missing ages...')
@@ -225,15 +226,21 @@ def run_miss_va():
 
     clean_date_df.to_csv('../results/cleaned_cases_train.csv',index=False)
 
-    print('\nCleaning training data set')
+    print('\nCleaning testing data set')
     dropLatLong_test = test_df.dropna(subset=['latitude','longitude'])
+
     print('Filling missing countries and provinces...')
+    print('WARNING: This process may take around 15-20 mins due to the use of geopy')
     filled_country_df = fill_country_province(dropLatLong_test)
+
     print('Filling missing genders...')
     filled_gender_df = find_gender_outcome_test(filled_country_df)
+
     print('Filling missing ages...')
     filled_age_df = process_age((filled_gender_df))
+
     print('Filling missing dates...')
     clean_date_df = parse_dates((filled_age_df))
-    clean_date_df.to_csv('../results/cleaned_cases_test.csv', index=False)
 
+    clean_date_df.to_csv('../results/cleaned_cases_test.csv', index=False)
+    print()
