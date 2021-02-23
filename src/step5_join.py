@@ -41,8 +41,24 @@ def generate_combined_key(row, province_state_set):
         join_key = get_country_only(country)
     return str(join_key)
 
+def fill_missing_locs(row, df_location_agg):
+    if (str(row['Confirmed']) == 'nan'):
+        country = row['country_filled'].strip()
+        country = get_country_only(country)
+        location_row = df_location_agg[df_location_agg['Country_Region'] == country]
+        row['Confirmed'] = int(location_row['Confirmed'])
+        row['Deaths'] = int(location_row['Deaths'])
+        row['Recovered'] = int(location_row['Recovered'])
+        row['Active'] = int(location_row['Active'])
+        row['Incidence_Rate'] = float(location_row['Incidence_Rate'])
+        row['Case-Fatality_Ratio'] = float(location_row['Case-Fatality_Ratio'])
+    return row
+
 def join_cases_with_locations():
     df_location = pd.read_csv("../results/location_transformed.csv")
+    df_location_agg = df_location.groupby('Country_Region',as_index=False).agg(\
+        {'Confirmed': 'mean', 'Deaths': 'mean', 'Recovered': 'mean', 'Active': 'mean', \
+         'Incidence_Rate': 'mean', 'Case-Fatality_Ratio': 'mean'})
     df_train_cases = pd.read_csv("../results/cleaned_outliers_train.csv")
     df_test_cases = pd.read_csv('../results/cleaned_cases_test.csv')
 
@@ -53,12 +69,14 @@ def join_cases_with_locations():
     df_train_cases['Combined_Key'] = df_train_cases.apply(generate_combined_key, axis=1, province_state_set=province_state_set)
     df_train_cases = df_train_cases[['Combined_Key', 'age_filled', 'filled_sex', 'province_filled', 'country_filled', 'latitude', 'longitude', 'new_date_confirmation', 'additional_information', 'source', 'outcome']]
     df_train_cases = pd.merge(df_train_cases, df_location, how='left', on=['Combined_Key', 'Combined_Key'])
+    df_train_cases = df_train_cases.apply(fill_missing_locs, axis=1, df_location_agg=df_location_agg)
     df_train_cases.to_csv("../results/cases_train_processed.csv", index=False)
 
     # join testing data to location data 
     df_test_cases['Combined_Key'] = df_test_cases.apply(generate_combined_key, axis=1, province_state_set=province_state_set)
     df_test_cases = df_test_cases[['Combined_Key', 'age_filled', 'filled_sex', 'province_filled', 'country_filled', 'latitude', 'longitude', 'new_date_confirmation', 'additional_information', 'source', 'outcome']]
     df_test_cases = pd.merge(df_test_cases, df_location, how='left', on=['Combined_Key', 'Combined_Key'])
+    df_test_cases = df_test_cases.apply(fill_missing_locs, axis=1, df_location_agg=df_location_agg)
     df_test_cases.to_csv("../results/cases_test_processed.csv", index=False)
     
 
