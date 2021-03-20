@@ -13,29 +13,6 @@ def buildModel(train_attr, train_outcomes, filename):
     clf.fit(train_attr, train_outcomes)
     pickle.dump(clf, open(filename, 'wb'))
 
-df = pd.read_csv('./results/cases_train_processed.csv')
-
-all_data = df[['age_filled', 'filled_sex', 'province_filled',
-             'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
-             'Incidence_Rate', 'Case-Fatality_Ratio']]
-
-# One hot encoding for categorical values
-category_clean = pd.get_dummies(all_data)
-
-# Attach outcome column back
-category_clean['outcome'] = df['outcome']
-
-train, validate = train_test_split(category_clean, test_size=0.2, random_state=43, shuffle=True)
-
-train_attr = train.drop(columns=['outcome']) # Features
-train_outcomes = train[['outcome']]
-
-filename = 'rf_classifier.pkl'
-
-v_data = validate.drop(columns=['outcome'])
-v_outcomes = validate[['outcome']]
-
-
 def evaluateModel(filename, data, outcomes):
     clf_load = pickle.load(open(filename, 'rb'))
     predictions = clf_load.predict(data)
@@ -66,6 +43,31 @@ def evaluateModel(filename, data, outcomes):
 
     # F1-scores
     print(classification_report(outcomes, predictions))
+
+
+df = pd.read_csv('./results/cases_train_processed.csv')
+
+all_data = df[['age_filled', 'filled_sex', 'province_filled',
+             'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+             'Incidence_Rate', 'Case-Fatality_Ratio']]
+
+# One hot encoding for categorical values
+category_clean = pd.get_dummies(all_data)
+
+# Attach outcome column back
+category_clean['outcome'] = df['outcome']
+
+train, validate = train_test_split(category_clean, test_size=0.2, random_state=43, shuffle=True)
+
+train_attr = train.drop(columns=['outcome']) # Features
+train_outcomes = train[['outcome']]
+
+filename = 'rf_classifier.pkl'
+
+v_data = validate.drop(columns=['outcome'])
+v_outcomes = validate[['outcome']]
+
+
 
 
 #print("Build Random Forest Model")
