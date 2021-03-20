@@ -31,10 +31,12 @@ def main():
     train_attr = train.drop(columns=['outcome']) # Features
     train_outcomes = train[['outcome']]
 
+    v_data = validate.drop(columns=['outcome'])
+    v_outcomes = validate[['outcome']]
     print("Training Random Forests")
     RandomForests.rf_train(train_attr, train_outcomes)
     print("Evaluating Random Forests")
-    RandomForests.rf_eval(validate)
+    RandomForests.rf_eval(v_data,v_outcomes)
 
 if __name__ == '__main__':
     main()
