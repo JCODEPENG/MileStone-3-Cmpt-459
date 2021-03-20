@@ -6,17 +6,16 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
 import numpy as np
-# import lightgbm as lgb
+import lightgbm as lgb
 from sklearn.metrics import accuracy_score
 import pickle
 
-import RandomForests
+import RandomForests, LightGbm
 
 
 def main():
     directory = os.path.dirname('../models/')
     if not os.path.exists(directory):
-        print('create')
         os.makedirs(directory)
 
     df = pd.read_csv('../data/cases_train_processed.csv')
