@@ -6,7 +6,6 @@ from sklearn.metrics import accuracy_score, confusion_matrix, classification_rep
 import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
-# import tqdm
 
 filename = '../models/rf_classifier.pkl'
 estimators = 1000
