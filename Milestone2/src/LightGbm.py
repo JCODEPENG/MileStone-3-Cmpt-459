@@ -5,20 +5,44 @@ import lightgbm as lgb
 from sklearn.metrics import accuracy_score
 import pickle
 
+filename = '../models/boosted_classifier.pkl'
+feature_name = ['age_filled', 'filled_sex', 'province_filled',
+                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio']
+categorical_feature = ['filled_sex', 'province_filled', 'country_filled']
 
 
-# # Train model and write to file
-# clf.fit(train_attr, train_outcomes)
-# pickle.dump(clf, open(filename, 'wb'))
+def boosted_train(data, label):
+    # Set the params
+    params={}
+    params['learning_rate']=0.03
+    params['boosting_type']='gbdt' #GradientBoostingDecisionTree
+    params['objective']='multiclass' #Binary target feature
+    params['metric']='multi_logloss' 
+    params['max_depth']=10
+    params['num_class'] = 4
+    
+    epochs=100
 
-# v_data = validate.drop(columns=['outcome'])
-# v_outcomes = validate[['outcome']]
+    for col in categorical_feature:
+        data[col] = data[col].astype('category')
 
-# # Load Model
-# clf_load = pickle.load(open(filename, 'rb'))
-# predictions = clf_load.predict(v_data)
-# value = accuracy_score(v_data, predictions)
+    # Train model and write to file
+    print("Converting dataset to lgb format")
+    train_data = lgb.Dataset(data, label=label, feature_name=feature_name, categorical_feature=categorical_feature)
+    print("Training LightGBM classifier")
+    clf = lgb.train(params, train_data, epochs)
+    print("Saving LightGBM model")
+    pickle.dump(clf, open(filename, 'wb'))
 
-# print("ACCURACY: ", end=" ")
-# print(value)
+def boosted_eval(X, y):
+    for col in categorical_feature:
+        X[col] = X[col].astype('category')
+    # Load Model
+    clf_load = pickle.load(open(filename, 'rb'))
+    predictions = clf_load.predict(X)
+    predictions = [np.argmax(line) for line in predictions]
+    value = accuracy_score(y, predictions)
 
+
+    print("ACCURACY: ", value)
