@@ -2,8 +2,10 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 import lightgbm as lgb
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+import seaborn as sns
 import pickle
+import matplotlib.pyplot as plt
 
 filename = '../models/boosted_classifier.pkl'
 feature_name = ['age_filled', 'filled_sex', 'province_filled',
@@ -35,7 +37,7 @@ def boosted_train(data, label):
     print("Saving LightGBM model")
     pickle.dump(clf, open(filename, 'wb'))
 
-def boosted_eval(X, y):
+def boosted_eval(X, y, le):
     for col in categorical_feature:
         X[col] = X[col].astype('category')
     # Load Model
@@ -43,6 +45,30 @@ def boosted_eval(X, y):
     predictions = clf_load.predict(X)
     predictions = [np.argmax(line) for line in predictions]
     value = accuracy_score(y, predictions)
-
-
     print("ACCURACY: ", value)
+
+    outcomes = le.inverse_transform(y)
+    predictions = le.inverse_transform(predictions)
+
+    # Confusion Matrix
+    # Modified from https://medium.com/analytics-vidhya/evaluating-a-random-forest-model-9d165595ad56
+    matrix = confusion_matrix(outcomes, predictions)
+    matrix = matrix.astype('float') / matrix.sum(axis=1)[:, np.newaxis]
+
+    plt.figure(figsize=(16,7))
+    sns.set(font_scale=1.4)
+    sns.heatmap(matrix, annot=True, annot_kws={'size':10},
+                cmap=plt.cm.Blues, linewidths=0.2)
+
+    class_names = np.unique(outcomes)
+    tick_marks = np.arange(len(class_names))
+    tick_marks2 = tick_marks + 0.5
+    plt.xticks(tick_marks, class_names, rotation=25)
+    plt.yticks(tick_marks2, class_names, rotation=0)
+    plt.xlabel('Predicted label')
+    plt.ylabel('True label')
+    plt.title('Confusion Matrix for LightGBM Model')
+    plt.show()
+
+    # F1-scores
+    print(classification_report(outcomes, predictions))

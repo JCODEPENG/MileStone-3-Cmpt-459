@@ -51,8 +51,10 @@ def main():
 
     # print("Training LightGBM")
     # LightGbm.boosted_train(X_train, y_train)
-    print("Evaluating LightGBM")
-    LightGbm.boosted_eval(X_valid, y_valid)
+    print("Evaluating LightGBM on train set")
+    LightGbm.boosted_eval(X_train, y_train, le)
+    print("Evaluating LightGBM on vadliation set")
+    LightGbm.boosted_eval(X_valid, y_valid, le)
 
 if __name__ == '__main__':
     main()
