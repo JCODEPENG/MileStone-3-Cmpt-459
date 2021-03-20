@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 # import tqdm
 
 filename = '../models/rf_classifier.pkl'
-estimators = 50
+estimators = 1000
 def rf_train(train_attr, train_outcomes):
     clf = RandomForestClassifier(n_estimators=estimators)
 
