@@ -10,6 +10,7 @@ import lightgbm as lgb
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import pickle
+import matplotlib.pyplot as plt
 
 import RandomForests, LightGbm
 
@@ -56,18 +57,23 @@ def light_gbm(df):
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
     train_scores = []
     validation_scores = []
-    for depth in range(10,20,2):
-        # print("Training LightGBM with depth", depth)
-        # LightGbm.boosted_train(X_train, y_train, depth)
-        # train_accuarcy = LightGbm.boosted_eval(X_train, y_train, le, False)
-        # train_scores.append(train_accuracy)
+    depth_values = range(2,20,2)
+    for depth in depth_values:
+        print("Training LightGBM with depth", depth)
+        LightGbm.boosted_train(X_train, y_train, depth)
+        train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, False)
+        train_scores.append(train_accuracy)
 
-        # validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, False)
-        # validation_scores.append(validattion_accuracy)
-        train_scores.append(depth)
-        validation_scores.append(depth-1)
-    print(train_scores)
-    print(validation_scores)
+        validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, False)
+        validation_scores.append(validation_accuracy)
+    plt.figure()
+    plt.plot(depth_values, train_scores)
+    plt.plot(depth_values, validation_scores)
+    plt.title("Accuracy vs Max Depth Hyperparameter for LightGBD")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Max Depth Hyperparameter")
+    plt.legend(['training scores', 'validation scores'])
+    plt.savefig("../plots/overfitting_check_gbd.png")
 
 if __name__ == '__main__':
     main()
