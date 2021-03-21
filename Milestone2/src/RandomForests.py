@@ -1,4 +1,3 @@
-from sklearn.model_selection import train_test_split
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
@@ -46,3 +45,45 @@ def rf_eval(data, outcomes):
 
     # F1-scores
     print(classification_report(outcomes, predictions))
+
+
+def investigate_deaths(validate):
+    clf_load = pickle.load(open(filename, 'rb'))
+
+    feature_list = ['age_filled', 'filled_sex', 'province_filled',
+                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio']
+
+     # feature importance adapted from https://www.kaggle.com/ashishpatel26/feature-importance-of-lightgbm
+    feature_imp = pd.DataFrame(sorted(zip(clf_load.feature_importances_, feature_list)),columns=['Value','Feature'])
+    plt.figure(figsize=(20, 10))
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
+    plt.title('Random Forest Features Importance')
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig('../plots/feature_importances_rf.png')
+
+    deaths = validate[validate['outcome'] == 'deceased']
+    hospitalized = validate[validate['outcome'] == 'hospitalized']
+    hospitalized_avgs = {'age': hospitalized['age_filled'].mean(), 'gender': hospitalized['filled_sex'].mode()[0],
+                         'province_filled': hospitalized['province_filled'].mode()[0],
+                         'country_filled': hospitalized['country_filled'].mode()[0], 'Confirmed': hospitalized['Confirmed'].mode()[0],
+                         'Deaths': hospitalized['Deaths'].mode()[0], 'Recovered': hospitalized['Recovered'].mode()[0],
+                         'Incidence_Rate': hospitalized['Incidence_Rate'].mode()[0],
+                         'Active': hospitalized['Active'].mode()[0]}
+
+    overallCount = 0
+    for idx, row in deaths.iterrows():
+        matches = 0
+        if row['province_filled'] == hospitalized_avgs['province_filled']:
+            matches+=1
+        if row['Recovered'] >= hospitalized_avgs['Recovered'] - 10000 and row['Recovered'] <= hospitalized_avgs['Recovered'] + 10000:
+            matches +=1
+        if row['Deaths'] >= hospitalized_avgs['Deaths'] - 1000 and row['Deaths'] <= hospitalized_avgs['Deaths'] + 1000:
+            matches +=1
+        if row['Active'] >= hospitalized_avgs['Active'] - 10000 and row['Active'] <= hospitalized_avgs['Active'] + 10000:
+            matches +=1
+        if matches > 3:
+            overallCount+=1
+    print('Similarity between deceased and hospitalized: ', end=" ")
+    print(round(overallCount/len(deaths['outcome']), 2))
