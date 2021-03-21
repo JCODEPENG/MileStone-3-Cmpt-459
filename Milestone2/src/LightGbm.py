@@ -46,8 +46,8 @@ def boosted_eval(X, y, le, show_stats=True):
     predictions = clf_load.predict(X)
     predictions = [np.argmax(line) for line in predictions]
     accuracy = accuracy_score(y, predictions)
-    # print("ACCURACY: ", accuracy)
     if (show_stats):
+        print("ACCURACY: ", accuracy)
         boosted_stats(y, predictions, le)
     
     return accuracy

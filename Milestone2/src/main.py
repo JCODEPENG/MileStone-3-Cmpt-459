@@ -6,7 +6,6 @@ from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
 import numpy as np
-# import lightgbm as lgb
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import pickle
@@ -69,7 +68,12 @@ def light_gbm(df):
 
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
 
-    # 2.3 Find feature importance
+    # 2.3 Evaluate performance
+    LightGbm.boosted_train(X_train, y_train, 8)
+    train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, True)
+    validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, True)
+
+    # Find feature importance
     LightGbm.boosted_feature_importance(X_train)
 
     # # 2.4 Vary hyperparameter and check for overfitting
