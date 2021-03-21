@@ -79,3 +79,15 @@ def boosted_stats(actual, predictions, le):
     # F1-scores
     print(classification_report(actual, predictions))
 
+def boosted_feature_importance(X):
+    clf = pickle.load(open(filename, 'rb'))
+    # feature importance adapted from https://www.kaggle.com/ashishpatel26/feature-importance-of-lightgbm 
+    feature_imp = pd.DataFrame(sorted(zip(clf.feature_importance(),X.columns)), columns=['Value','Feature'])
+
+    plt.figure(figsize=(20, 10))
+    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
+    plt.title('LightGBM Features Importance')
+    plt.tight_layout()
+    # plt.show()
+    plt.savefig('../plots/feature_importances_gbd.png')
+
