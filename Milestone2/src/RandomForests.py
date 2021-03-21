@@ -47,7 +47,7 @@ def rf_eval(data, outcomes):
     print(classification_report(outcomes, predictions))
 
 
-def check_deaths(validate):
+def investigate_deaths(validate):
     clf_load = pickle.load(open(filename, 'rb'))
 
     feature_list = ['age_filled', 'filled_sex', 'province_filled',
@@ -60,8 +60,8 @@ def check_deaths(validate):
     sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
     plt.title('Random Forest Features Importance')
     plt.tight_layout()
-    plt.show()
-    # plt.savefig('../plots/feature_importances_rf.png')
+    # plt.show()
+    plt.savefig('../plots/feature_importances_rf.png')
 
     deaths = validate[validate['outcome'] == 'deceased']
     hospitalized = validate[validate['outcome'] == 'hospitalized']
