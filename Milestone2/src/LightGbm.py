@@ -7,7 +7,7 @@ import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
 
-filename = '../models/boosted_classifier.pkl'
+filename = '../models/lightgbm_classifier.pkl'
 feature_name = ['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio']
@@ -46,8 +46,8 @@ def boosted_eval(X, y, le, show_stats=True):
     predictions = clf_load.predict(X)
     predictions = [np.argmax(line) for line in predictions]
     accuracy = accuracy_score(y, predictions)
-    # print("ACCURACY: ", accuracy)
     if (show_stats):
+        print("ACCURACY: ", accuracy)
         boosted_stats(y, predictions, le)
     
     return accuracy
@@ -74,7 +74,8 @@ def boosted_stats(actual, predictions, le):
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title('Confusion Matrix for LightGBM Model')
-    plt.show()
+    plt.savefig("../plots/confusion_matrix_gbd.png", bbox_inches = "tight")
+    # plt.show()
 
     # F1-scores
     print(classification_report(actual, predictions))
