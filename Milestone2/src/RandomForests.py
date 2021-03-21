@@ -68,18 +68,18 @@ def investigate_deaths(validate):
     hospitalized_avgs = {'age': hospitalized['age_filled'].mean(), 'gender': hospitalized['filled_sex'].mode()[0],
                          'province_filled': hospitalized['province_filled'].mode()[0],
                          'country_filled': hospitalized['country_filled'].mode()[0], 'Confirmed': hospitalized['Confirmed'].mode()[0],
-                         'Deaths': hospitalized['Deaths'].mean(), 'Recovered': hospitalized['Recovered'].mode()[0],
+                         'Deaths': hospitalized['Deaths'].mode()[0], 'Recovered': hospitalized['Recovered'].mode()[0],
                          'Incidence_Rate': hospitalized['Incidence_Rate'].mode()[0],
                          'Active': hospitalized['Active'].mode()[0]}
 
     overallCount = 0
     for idx, row in deaths.iterrows():
         matches = 0
-        if row['country_filled'] == hospitalized_avgs['country_filled']:
+        if row['province_filled'] == hospitalized_avgs['province_filled']:
             matches+=1
         if row['Recovered'] >= hospitalized_avgs['Recovered'] - 10000 and row['Recovered'] <= hospitalized_avgs['Recovered'] + 10000:
             matches +=1
-        if row['Incidence_Rate'] >= hospitalized_avgs['Incidence_Rate'] - 100 and row['Incidence_Rate'] <= hospitalized_avgs['Incidence_Rate'] + 100:
+        if row['Deaths'] >= hospitalized_avgs['Deaths'] - 1000 and row['Deaths'] <= hospitalized_avgs['Deaths'] + 1000:
             matches +=1
         if row['Active'] >= hospitalized_avgs['Active'] - 10000 and row['Active'] <= hospitalized_avgs['Active'] + 10000:
             matches +=1
