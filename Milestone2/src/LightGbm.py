@@ -7,7 +7,7 @@ import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
 
-filename = '../models/boosted_classifier.pkl'
+filename = '../models/lightgbm_classifier.pkl'
 feature_name = ['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio']
