@@ -74,7 +74,8 @@ def boosted_stats(actual, predictions, le):
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title('Confusion Matrix for LightGBM Model')
-    plt.show()
+    plt.savefig("../plots/confusion_matrix_gbd.png", bbox_inches = "tight")
+    # plt.show()
 
     # F1-scores
     print(classification_report(actual, predictions))

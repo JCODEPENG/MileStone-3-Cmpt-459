@@ -70,11 +70,11 @@ def light_gbm(df):
 
     # 2.3 Evaluate performance
     LightGbm.boosted_train(X_train, y_train, 8)
-    train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, True)
-    validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, True)
+    # LightGbm.boosted_eval(X_train, y_train, le, True)
+    LightGbm.boosted_eval(X_valid, y_valid, le, True)
 
-    # Find feature importance
-    LightGbm.boosted_feature_importance(X_train)
+    # # Find feature importance
+    # LightGbm.boosted_feature_importance(X_train)
 
     # # 2.4 Vary hyperparameter and check for overfitting
     # train_scores = []
