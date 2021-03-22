@@ -28,7 +28,7 @@ def overfit_eval(data,outcomes, clf):
     print(value)
     return value
 
-def rf_eval(data, outcomes):
+def rf_eval(data, outcomes, name):
     clf_load = pickle.load(open(filename, 'rb'))
     predictions = clf_load.predict(data)
     value = accuracy_score(outcomes, predictions)
@@ -53,7 +53,12 @@ def rf_eval(data, outcomes):
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
     plt.title('Confusion Matrix for Random Forest Model')
-    plt.show()
+    if(name):
+        plt.title('Confusion Matrix for Random Forest Model - Train Data')
+        plt.savefig("../plots/confusion_matrix_train_rf.png", bbox_inches = "tight")
+    else:
+        plt.title('Confusion Matrix for Random Forest Model - Validation Data')
+        plt.savefig("../plots/confusion_matrix_val_rf.png", bbox_inches = "tight")
     #
 
     # F1-scores
@@ -73,7 +78,6 @@ def investigate_deaths(validate):
     sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
     plt.title('Random Forest Features Importance')
     plt.tight_layout()
-    # plt.show()
     plt.savefig('../plots/feature_importances_rf.png')
 
     deaths = validate[validate['outcome'] == 'deceased']
@@ -98,5 +102,6 @@ def investigate_deaths(validate):
             matches +=1
         if matches > 3:
             overallCount+=1
+
     print('Similarity between deceased and hospitalized: ', end=" ")
     print(round(overallCount/len(deaths['outcome']), 2))

@@ -5,10 +5,8 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
-import numpy as np
 from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
-import pickle
 import matplotlib.pyplot as plt
 
 import RandomForests, LightGbm
@@ -48,15 +46,15 @@ def random_forest(df):
 
     v_data = validate.drop(columns=['outcome', 'age_filled','filled_sex','province_filled','country_filled'])
     v_outcomes = validate[['outcome']]
-
+    # 2.2 Training Model
     print("Training Random Forests")
     RandomForests.rf_train(train_attr, train_outcomes)
-
+    # 2.3 Evaluate performance
     print("Evaluating Random Forests Training")
-    RandomForests.rf_eval(train_attr,train_outcomes)
+    RandomForests.rf_eval(train_attr,train_outcomes, True)
 
     print("Evaluating Random Forests Validation")
-    RandomForests.rf_eval(v_data,v_outcomes)
+    RandomForests.rf_eval(v_data,v_outcomes,False)
 
     RandomForests.investigate_deaths(validate)
 
@@ -92,13 +90,15 @@ def light_gbm(df):
 
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
 
-    # 2.3 Evaluate performance
+    # 2.2 Train Model
     LightGbm.boosted_train(X_train, y_train, 8)
-    # LightGbm.boosted_eval(X_train, y_train, le, True)
+
+    # 2.3 Evaluate performance
+    LightGbm.boosted_eval(X_train, y_train, le, True)
     LightGbm.boosted_eval(X_valid, y_valid, le, True)
 
-    # # Find feature importance
-    # LightGbm.boosted_feature_importance(X_train)
+    # Find feature importance
+    LightGbm.boosted_feature_importance(X_train)
 
     # # 2.4 Vary hyperparameter and check for overfitting
     # train_scores = []
