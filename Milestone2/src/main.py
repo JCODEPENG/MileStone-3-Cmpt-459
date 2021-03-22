@@ -5,7 +5,6 @@
 from sklearn.model_selection import train_test_split
 import pandas as pd
 import os
-from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 
