@@ -38,7 +38,7 @@ def boosted_train(data, label, max_depth):
     print("Saving LightGBM model")
     pickle.dump(clf, open(filename, 'wb'))
 
-def boosted_eval(X, y, le, show_stats=True):
+def boosted_eval(X, y, le, show_stats=True, trainset=True):
     for col in categorical_feature:
         X[col] = X[col].astype('category')
     # Load Model
@@ -48,11 +48,11 @@ def boosted_eval(X, y, le, show_stats=True):
     accuracy = accuracy_score(y, predictions)
     if (show_stats):
         print("ACCURACY: ", accuracy)
-        boosted_stats(y, predictions, le)
+        boosted_stats(y, predictions, le, trainset)
     
     return accuracy
 
-def boosted_stats(actual, predictions, le):
+def boosted_stats(actual, predictions, le, trainset):
     actual = le.inverse_transform(actual)
     predictions = le.inverse_transform(predictions)
 
@@ -73,8 +73,12 @@ def boosted_stats(actual, predictions, le):
     plt.yticks(tick_marks2, class_names, rotation=0)
     plt.xlabel('Predicted label')
     plt.ylabel('True label')
-    plt.title('Confusion Matrix for LightGBM Model')
-    plt.savefig("../plots/confusion_matrix_gbd.png", bbox_inches = "tight")
+    if (trainset):
+        plt.title('Confusion Matrix for LightGBM Model - Train Data')
+        plt.savefig("../plots/confusion_matrix_train_gbd.png", bbox_inches = "tight")
+    else:
+        plt.title('Confusion Matrix for LightGBM Model - Validation Data')
+        plt.savefig("../plots/confusion_matrix_val_gbd.png", bbox_inches = "tight")
     # plt.show()
 
     # F1-scores
