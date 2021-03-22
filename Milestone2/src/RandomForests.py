@@ -7,13 +7,26 @@ import pickle
 import matplotlib.pyplot as plt
 
 filename = '../models/rf_classifier.pkl'
-estimators = 1000
+estimators = 100
 def rf_train(train_attr, train_outcomes):
     clf = RandomForestClassifier(n_estimators=estimators)
 
     # Train model and write to file
     clf.fit(train_attr, train_outcomes)
     pickle.dump(clf, open(filename, 'wb'))
+
+def overfit_rf_train(train_attr, train_outcomes, estimators):
+    clf = RandomForestClassifier(n_estimators=estimators)
+
+    # Train model and write to file
+    clf.fit(train_attr, train_outcomes)
+    return clf
+
+def overfit_eval(data,outcomes, clf):
+    predictions = clf.predict(data)
+    value = accuracy_score(outcomes, predictions)
+    print(value)
+    return value
 
 def rf_eval(data, outcomes):
     clf_load = pickle.load(open(filename, 'rb'))

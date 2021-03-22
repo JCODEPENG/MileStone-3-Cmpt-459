@@ -21,8 +21,8 @@ def main():
 
     df = pd.read_csv('../data/cases_train_processed.csv')
 
-    # random_forest(df)
-    light_gbm(df)
+    random_forest(df)
+    # light_gbm(df)
 
 def random_forest(df):
     all_data = df[['age_filled', 'filled_sex', 'province_filled',
@@ -51,11 +51,35 @@ def random_forest(df):
 
     print("Training Random Forests")
     RandomForests.rf_train(train_attr, train_outcomes)
-    print("Evaluating Random Forests")
+
+    print("Evaluating Random Forests Training")
+    RandomForests.rf_eval(train_attr,train_outcomes)
+
+    print("Evaluating Random Forests Validation")
     RandomForests.rf_eval(v_data,v_outcomes)
 
     RandomForests.investigate_deaths(validate)
 
+    # 2.4 Vary hyperparameter and check for overfitting
+    train_scores = []
+    validation_scores = []
+    depth_values = range(10,110,10)
+    for depth in depth_values:
+         print("Training RandomForest with depth", depth)
+         clf = RandomForests.overfit_rf_train(train_attr, train_outcomes, depth)
+         train_accuracy = RandomForests.overfit_eval(train_attr, train_outcomes, clf)
+         train_scores.append(train_accuracy)
+
+         validation_accuracy = RandomForests.overfit_eval(v_data, v_outcomes, clf)
+         validation_scores.append(validation_accuracy)
+    plt.figure()
+    plt.plot(depth_values, train_scores)
+    plt.plot(depth_values, validation_scores)
+    plt.title("Accuracy vs Max Depth Hyperparameter for Random Forests")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Max Depth Hyperparameter")
+    plt.legend(['training scores', 'validation scores'])
+    plt.savefig("../plots/overfitting_check_rf.png")
 
 def light_gbm(df):
     X = df[['age_filled', 'filled_sex', 'province_filled',
