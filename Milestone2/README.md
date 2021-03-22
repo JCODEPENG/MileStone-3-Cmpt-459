@@ -4,7 +4,7 @@
 ## Instructions
 command to run the program: 
 - Install the following dependencies: pandas, numpy, scikit-learn, pickle, seaborn, matplotlib, lightgbm
-- Please note that if you are using a Mac, there may be issues with using lightgbm. Please refer to the steps here: https://github.com/microsoft/LightGBM/issues/1369 or use a Linux machine instead. 
+- When using lightgbm, please ensure you have GCC-8 set as your default compiler
 - Load a copy of the models from https://drive.google.com/drive/folders/1t6E33UoO6pa0ZClUF-wpv848JWPp7tQP?usp=sharing 
 - `python3 main.py` from the ./src directory to run all steps
 
