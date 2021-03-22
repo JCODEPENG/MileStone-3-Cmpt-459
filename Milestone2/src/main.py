@@ -20,7 +20,7 @@ def main():
     df = pd.read_csv('../data/cases_train_processed.csv')
 
     random_forest(df)
-    # light_gbm(df)
+    light_gbm(df)
 
 def random_forest(df):
     all_data = df[['age_filled', 'filled_sex', 'province_filled',
@@ -94,32 +94,32 @@ def light_gbm(df):
     LightGbm.boosted_train(X_train, y_train, 8)
 
     # 2.3 Evaluate performance
-    LightGbm.boosted_eval(X_train, y_train, le, True)
-    LightGbm.boosted_eval(X_valid, y_valid, le, True)
+    LightGbm.boosted_eval(X_train, y_train, le, True, True)
+    LightGbm.boosted_eval(X_valid, y_valid, le, True, False)
 
     # Find feature importance
     LightGbm.boosted_feature_importance(X_train)
 
-    # # 2.4 Vary hyperparameter and check for overfitting
-    # train_scores = []
-    # validation_scores = []
-    # depth_values = range(2,20,2)
-    # for depth in depth_values:
-    #     print("Training LightGBM with depth", depth)
-    #     LightGbm.boosted_train(X_train, y_train, depth)
-    #     train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, False)
-    #     train_scores.append(train_accuracy)
+    # 2.4 Vary hyperparameter and check for overfitting
+    train_scores = []
+    validation_scores = []
+    depth_values = range(2,20,2)
+    for depth in depth_values:
+        print("Training LightGBM with depth", depth)
+        LightGbm.boosted_train(X_train, y_train, depth)
+        train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, False)
+        train_scores.append(train_accuracy)
 
-    #     validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, False)
-    #     validation_scores.append(validation_accuracy)
-    # plt.figure()
-    # plt.plot(depth_values, train_scores)
-    # plt.plot(depth_values, validation_scores)
-    # plt.title("Accuracy vs Max Depth Hyperparameter for LightGBD")
-    # plt.ylabel("Accuracy")
-    # plt.xlabel("Max Depth Hyperparameter")
-    # plt.legend(['training scores', 'validation scores'])
-    # plt.savefig("../plots/overfitting_check_gbd.png")
+        validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, False)
+        validation_scores.append(validation_accuracy)
+    plt.figure()
+    plt.plot(depth_values, train_scores)
+    plt.plot(depth_values, validation_scores)
+    plt.title("Accuracy vs Max Depth Hyperparameter for LightGBD")
+    plt.ylabel("Accuracy")
+    plt.xlabel("Max Depth Hyperparameter")
+    plt.legend(['training scores', 'validation scores'])
+    plt.savefig("../plots/overfitting_check_gbd.png", bbox_inches = "tight")
 
 
 if __name__ == '__main__':
