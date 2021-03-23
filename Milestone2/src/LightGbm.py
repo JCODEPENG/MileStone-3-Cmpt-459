@@ -20,7 +20,6 @@ def boosted_train(data, label, max_depth):
     params['boosting_type']='gbdt' #GradientBoostingDecisionTree
     params['objective']='multiclass'
     params['metric']='multi_logloss' 
-    # params['max_depth']=10
     params['max_depth']=max_depth
     params['num_class'] = 4
     
@@ -78,7 +77,6 @@ def boosted_stats(actual, predictions, le, trainset):
     else:
         plt.title('Confusion Matrix for LightGBM Model - Validation Data')
         plt.savefig("../plots/confusion_matrix_val_gbd.png", bbox_inches = "tight")
-    # plt.show()
 
     # F1-scores
     print(classification_report(actual, predictions))
@@ -92,7 +90,6 @@ def boosted_feature_importance(X):
     sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
     plt.title('LightGBM Features Importance')
     plt.tight_layout()
-    # plt.show()
     plt.savefig('../plots/feature_importances_gbd.png')
 
 
