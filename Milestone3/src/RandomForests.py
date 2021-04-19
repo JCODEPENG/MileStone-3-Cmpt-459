@@ -28,7 +28,7 @@ def rf_train(train_attr, train_outcomes, param_grid):
 
     clf = RandomForestClassifier(random_state=42)
 
-    random_search = RandomizedSearchCV(clf, param_grid, n_iter=15,
+    random_search = RandomizedSearchCV(clf, param_grid, n_iter=32,
                                         scoring=scoring, refit='accuracy', verbose=10, cv=5,
                                         n_jobs=1, random_state=42)
 
