@@ -40,6 +40,7 @@ def random_forest(df):
     counter = Counter(outcomes)
     print(counter)
 
+    #Smotenc part
     # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
     smotenc = SMOTENC([0,1,2,3],random_state = 101, sampling_strategy={'deceased': 99847})
     X,y = smotenc.fit_resample(all_data, outcomes)
