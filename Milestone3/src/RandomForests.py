@@ -34,7 +34,7 @@ def rf_train(train_attr, train_outcomes, param_grid):
                                         n_jobs=-1, random_state=42)
 
 
-    # Train model and write to file
+    # Randomized search
     random_search.fit(train_attr, train_outcomes)
     all_results = random_search.cv_results_
 
@@ -55,6 +55,7 @@ def rf_train(train_attr, train_outcomes, param_grid):
     print(random_search.best_params_)
     print(random_search.best_score_)
 
+    #actual training
     train_model = RandomForestClassifier(random_state=42, n_estimators=80, max_depth=80)
     train_model.fit(train_attr, train_outcomes)
     pickle.dump(train_model, open(filename, 'wb'))

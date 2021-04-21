@@ -54,8 +54,6 @@ def random_forest(df):
     encoder = OneHotEncoder(categories = "auto")
     encoder.fit(x_dataframe)
 
-    print(train_y)
-
     train_x_encoded = encoder.transform(train_x)
     
 
