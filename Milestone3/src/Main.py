@@ -40,28 +40,32 @@ def random_forest(df):
     counter = Counter(outcomes)
     print(counter)
 
-    train_x, validate_x, train_y, validate_y = train_test_split(all_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
-    encoder = OneHotEncoder(categories = "auto", handle_unknown='ignore')
-    encoder.fit(all_data)
-
-
     # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
-    smotenc = SMOTENC([0,1,2,3],random_state = 101)
-    X,y = smotenc.fit_resample(train_x, train_y)
+    smotenc = SMOTENC([0,1,2,3],random_state = 101, sampling_strategy={'deceased': 99847})
+    X,y = smotenc.fit_resample(all_data, outcomes)
     x_dataframe = pd.DataFrame(X, columns=['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio'])
-    train_x_encoded = encoder.transform(x_dataframe)
+    y_dataframe = pd.DataFrame(y,columns=['outcome'])
+
+
+
+    train_x, validate_x, train_y, validate_y = train_test_split(x_dataframe, y_dataframe, test_size=0.2, random_state=42, shuffle=True)
+    encoder = OneHotEncoder(categories = "auto")
+    encoder.fit(x_dataframe)
+
+    print(train_y)
+
+    train_x_encoded = encoder.transform(train_x)
     
 
     # 2.2 Training Model
     print("Training Random Forests")
-    RandomForests.rf_train(train_x_encoded, y, param_grid)
+    RandomForests.rf_train(train_x_encoded, train_y, param_grid)
 
 
     # 2.3 Evaluate performance
     print("Evaluating Random Forests Training")
-    train_x_encoded = encoder.transform(train_x)
     RandomForests.rf_eval(train_x_encoded, train_y, True)
 
     print("Evaluating Random Forests Validation")
