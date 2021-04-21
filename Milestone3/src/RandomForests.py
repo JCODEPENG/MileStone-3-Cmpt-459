@@ -1,13 +1,14 @@
 import pandas as pd
+import numpy as np
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, recall_score, f1_score,precision_recall_fscore_support
+from sklearn.metrics import accuracy_score, recall_score, classification_report,precision_recall_fscore_support, confusion_matrix
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.metrics import make_scorer
 import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
 
-filename = '../models/rf_classifier.pkl'
+filename = './models/rf_classifier.pkl'
 
 def f1Deceased(val, predict):
     ans = precision_recall_fscore_support(val,predict, labels=['deceased'])
@@ -28,11 +29,11 @@ def rf_train(train_attr, train_outcomes, param_grid):
 
     clf = RandomForestClassifier(random_state=42)
 
-    random_search = RandomizedSearchCV(clf, param_grid, n_iter=32,
+    random_search = RandomizedSearchCV(clf, param_grid, n_iter=15,
                                         scoring=scoring, refit='accuracy', verbose=10, cv=5,
-                                        n_jobs=1, random_state=42)
+                                        n_jobs=-1, random_state=42)
 
-
+    '''
     # Train model and write to file
     random_search.fit(train_attr, train_outcomes)
     all_results = random_search.cv_results_
@@ -53,8 +54,10 @@ def rf_train(train_attr, train_outcomes, param_grid):
 
     print(random_search.best_params_)
     print(random_search.best_score_)
-    # clf.fit(train_attr, train_outcomes)
-    # pickle.dump(clf, open(filename, 'wb'))
+    '''
+    train_model = RandomForestClassifier(random_state=42, n_estimators=80, max_depth=80, max_features='log2')
+    train_model.fit(train_attr, train_outcomes)
+    pickle.dump(train_model, open(filename, 'wb'))
 
 
 def overfit_rf_train(train_attr, train_outcomes, estimators):
@@ -75,7 +78,7 @@ def rf_eval(data, outcomes, name):
     print("Accuracy Score: ", end=" ")
     print(value)
 
-'''
+
     # Confusion Matrix
     # Modified from https://medium.com/analytics-vidhya/evaluating-a-random-forest-model-9d165595ad56
     matrix = confusion_matrix(outcomes, predictions)
@@ -86,7 +89,7 @@ def rf_eval(data, outcomes, name):
     sns.heatmap(matrix, annot=True, annot_kws={'size':10},
                 cmap=plt.cm.Blues, linewidths=0.2)
 
-    class_names = np.unique(outcomes['outcome'])
+    class_names = np.unique(outcomes)
     tick_marks = np.arange(len(class_names))
     tick_marks2 = tick_marks + 0.5
     plt.xticks(tick_marks, class_names, rotation=25)
@@ -96,15 +99,15 @@ def rf_eval(data, outcomes, name):
     plt.title('Confusion Matrix for Random Forest Model')
     if(name):
         plt.title('Confusion Matrix for Random Forest Model - Train Data')
-        plt.savefig("../plots/confusion_matrix_train_rf.png", bbox_inches = "tight")
+        plt.savefig("./plots/confusion_matrix_train_rf.png", bbox_inches = "tight")
     else:
         plt.title('Confusion Matrix for Random Forest Model - Validation Data')
-        plt.savefig("../plots/confusion_matrix_val_rf.png", bbox_inches = "tight")
+        plt.savefig("./plots/confusion_matrix_val_rf.png", bbox_inches = "tight")
     #
 
     # F1-scores
     print(classification_report(outcomes, predictions))
-'''
+
 
 def investigate_deaths(validate):
     clf_load = pickle.load(open(filename, 'rb'))
@@ -146,3 +149,4 @@ def investigate_deaths(validate):
 
     print('Similarity between deceased and hospitalized: ', end=" ")
     print(round(overallCount/len(deaths['outcome']), 2))
+
