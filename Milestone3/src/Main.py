@@ -8,6 +8,7 @@ import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import OneHotEncoder
 
 import RandomForests
 from imblearn.over_sampling import SMOTENC
@@ -38,53 +39,33 @@ def random_forest(df):
     outcomes = df['outcome']
     counter = Counter(outcomes)
     print(counter)
-    print((all_data))
 
-    """
-    # One hot encoding for categorical values
-    category_clean = pd.get_dummies(all_data)
-
-    # Attach outcome column back
-    category_clean['outcome'] = df['outcome']
-    category_clean['age_filled'] = df['age_filled']
-    category_clean['filled_sex'] = df['filled_sex']
-    category_clean['province_filled'] = df['province_filled']
-    category_clean['country_filled'] = df['country_filled']
-    
-    print("Splitting data into training and validation sets")
-    train, validate = train_test_split(category_clean, test_size=0.2, random_state=42, shuffle=True)
-    """
-
-    train_x, validate_x, train_y, validate_y = train_test_split(all_data,outcomes, test_size=0.2, random_state=42, shuffle=True)
+    train_x, validate_x, train_y, validate_y = train_test_split(all_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
+    encoder = OneHotEncoder(categories = "auto", handle_unknown='ignore')
+    encoder.fit(all_data)
 
 
     # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
     smotenc = SMOTENC([0,1,2,3],random_state = 101)
     X,y = smotenc.fit_resample(train_x, train_y)
-    x_dataframe = pd.DataFrame(X)
-    category_clean = pd.get_dummies(x_dataframe)
-    print(category_clean)
+    x_dataframe = pd.DataFrame(X, columns=['age_filled', 'filled_sex', 'province_filled',
+                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio'])
+    train_x_encoded = encoder.transform(x_dataframe)
+    
 
-
-    """
-    train_attr = train.drop(columns=['outcome', 'age_filled','filled_sex','province_filled','country_filled']) # Features
-    train_outcomes = train[['outcome']]
-
-    v_data = validate.drop(columns=['outcome', 'age_filled','filled_sex','province_filled','country_filled'])
-    v_outcomes = validate[['outcome']]
-    """
     # 2.2 Training Model
     print("Training Random Forests")
-    RandomForests.rf_train(category_clean, y, param_grid)
+    RandomForests.rf_train(train_x_encoded, y, param_grid)
 
 
     # 2.3 Evaluate performance
     print("Evaluating Random Forests Training")
-    train_x_encoded = pd.get_dummies(train_x)
-    RandomForests.rf_eval(train_x_encoded,train_y, True)
+    train_x_encoded = encoder.transform(train_x)
+    RandomForests.rf_eval(train_x_encoded, train_y, True)
 
     print("Evaluating Random Forests Validation")
-    validate_x_encoded = pd.get_dummies(validate_x)
+    validate_x_encoded = encoder.transform(validate_x)
     RandomForests.rf_eval(validate_x_encoded,validate_y,False)
     """
     RandomForests.investigate_deaths(validate)
