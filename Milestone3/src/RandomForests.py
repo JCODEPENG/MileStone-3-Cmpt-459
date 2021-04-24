@@ -27,7 +27,7 @@ def rf_train(train_attr, train_outcomes, param_grid):
             'recall': make_scorer(recall_score, average = 'micro')}
 
 
-    clf = RandomForestClassifier(random_state=42)
+    clf = RandomForestClassifier(random_state=42, class_weight='balanced')
 
     random_search = RandomizedSearchCV(clf, param_grid, n_iter=15,
                                         scoring=scoring, refit='accuracy', verbose=10, cv=5,

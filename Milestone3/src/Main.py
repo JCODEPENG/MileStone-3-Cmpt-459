@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import numpy as np
 import RandomForests
-from imblearn.over_sampling import SMOTENC
+from imblearn.over_sampling import RandomOverSampler
 from collections import Counter
 
 def main():
@@ -39,82 +39,47 @@ def random_forest(df):
     print(pd.get_dummies(all_data))
     outcomes = df['outcome']
 
-    all_data['filled_sex_bin'] = le.fit_transform(all_data['filled_sex'])
-    all_data['province_filled_bin'] = le.fit_transform(all_data['province_filled'])
-    all_data['country_filled_bin'] = le.fit_transform(all_data['country_filled'])
-    print(all_data['filled_sex_bin'])
-    new_data = all_data.drop(columns=['filled_sex', 'province_filled',
-                'country_filled'])
-
-    categories = all_data[['filled_sex_bin','province_filled_bin','country_filled_bin']]
 
 
-
-    train_x, validate_x, train_y, validate_y = train_test_split(new_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
+    train_x, validate_x, train_y, validate_y = train_test_split(all_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
     encoder = OneHotEncoder(categories = 'auto', handle_unknown='error', dtype=np.uint8)
-    encoder.fit(categories)
+    encoder.fit(all_data)
     counter = Counter(train_y)
     print(counter)
 
 
     # the [1,2,3] are the index of which columns hold categorical values if im not wrong
-    smotenc = SMOTENC([7,8,9],random_state = 101,sampling_strategy={'deceased': 99847})
+    smotenc = RandomOverSampler(random_state = 101,sampling_strategy={'deceased': 99847})
     X,y = smotenc.fit_resample(train_x, train_y)
-    x_dataframe = pd.DataFrame(X, columns=['age_filled','Confirmed', 'Deaths', 'Recovered','Active',
-                'Incidence_Rate', 'Case-Fatality_Ratio','filled_sex_bin','province_filled_bin',
-                'country_filled_bin'])
+    x_dataframe = pd.DataFrame(X, columns=['age_filled', 'filled_sex', 'province_filled',
+                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio'])
     print(x_dataframe)
     y_dataframe = pd.DataFrame(y,columns=['outcome'])
 
 
-    tmp = x_dataframe[['filled_sex_bin','province_filled_bin',
-                'country_filled_bin']]
-    print(tmp)
-    stripped_dataframe = x_dataframe.drop(columns=['filled_sex_bin','province_filled_bin',
-                'country_filled_bin'])
-    train_x_encoded = encoder.transform(tmp).toarray()
-    encoded = pd.DataFrame(train_x_encoded, index=stripped_dataframe.index)
-    print(encoded)
+    train_x_encoded = encoder.transform(x_dataframe)
 
-    true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
 
-    print(true_train_x)
     # 2.2 Training Model
     print("Training Random Forests")
     
     
-    RandomForests.rf_train(true_train_x, y_dataframe, param_grid)
+    RandomForests.rf_train(train_x_encoded, y_dataframe, param_grid)
 
     
     # 2.3 Evaluate performance
     print("Evaluating Random Forests Training")
 
+    train_x_encoded = encoder.transform(train_x)
 
-    tmp = train_x[['filled_sex_bin','province_filled_bin',
-                'country_filled_bin']]
-
-    stripped_dataframe = train_x.drop(columns=['filled_sex_bin','province_filled_bin',
-                'country_filled_bin'])
-    train_x_encoded = encoder.transform(tmp).toarray()
-    encoded = pd.DataFrame(train_x_encoded, index=stripped_dataframe.index)
-    print(encoded)
-    true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
-    print(true_train_x)
-    RandomForests.rf_eval(true_train_x, train_y, True)
+    RandomForests.rf_eval(train_x_encoded, train_y, True)
 
     print("Evaluating Random Forests Validation")
-    validate_tmp = validate_x[['filled_sex_bin','province_filled_bin',
-                'country_filled_bin']]
 
-    validate_strip = validate_x.drop(columns=['filled_sex_bin','province_filled_bin',
-                'country_filled_bin'])
+    validate_x_encoded = encoder.transform(validate_x)
 
-    validate_x_encoded = encoder.transform(validate_tmp).toarray()
-    print(validate_strip)
-
-    new_encoded = pd.DataFrame(validate_x_encoded,index=validate_strip.index)
-    true_validate_x = pd.concat([validate_strip,new_encoded], axis=1)
-    RandomForests.rf_eval(true_validate_x,validate_y,False)
+    RandomForests.rf_eval(validate_x_encoded,validate_y,False)
 
     """
     RandomForests.investigate_deaths(validate)
