@@ -98,39 +98,21 @@ def light_gbm(df):
     y_encoded = le.transform(y)
 
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
-    # X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
+    #Smotenc part
+    # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
+    deceased_encoded = le.transform(['deceased'])[0]
+
+    # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 99847})
+    smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 5000})
+    X_train,y_train = smotenc.fit_resample(X_train, y_train)
+
 
     # 2.2 Train Model
-    # LightGbm.boosted_train(X_train, y_train, param_grid, le)
+    LightGbm.lightgbm_train(X_train, y_train, param_grid, le)
+    LightGbm.lightgbm_check_model_stats()
     # 2.3 Evaluate performance
-    LightGbm.boosted_eval(X_train, y_train, le, True, True)
-"""
-    LightGbm.boosted_eval(X_valid, y_valid, le, True, False)
+    LightGbm.lightgbm_eval(X_train, y_train, le, "train")
+    LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
 
-    # Find feature importance
-    LightGbm.boosted_feature_importance(X_train)
-
-    # 2.4 Vary hyperparameter and check for overfitting
-    train_scores = []
-    validation_scores = []
-    depth_values = range(2,20,2)
-    for depth in depth_values:
-        print("Training LightGBM with depth", depth)
-        LightGbm.boosted_train(X_train, y_train, depth)
-        train_accuracy = LightGbm.boosted_eval(X_train, y_train, le, False)
-        train_scores.append(train_accuracy)
-
-        validation_accuracy = LightGbm.boosted_eval(X_valid, y_valid, le, False)
-        validation_scores.append(validation_accuracy)
-    plt.figure()
-    plt.plot(depth_values, train_scores)
-    plt.plot(depth_values, validation_scores)
-    plt.title("Accuracy vs Max Depth Hyperparameter for LightGBD")
-    plt.ylabel("Accuracy")
-    plt.xlabel("Max Depth Hyperparameter")
-    plt.legend(['training scores', 'validation scores'])
-    plt.savefig("../plots/overfitting_check_gbd.png", bbox_inches = "tight")
-
-"""
 if __name__ == '__main__':
     main()
