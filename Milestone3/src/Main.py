@@ -10,7 +10,7 @@ from sklearn.preprocessing import LabelEncoder
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder
 
-import RandomForests
+import RandomForests, LightGbm
 from imblearn.over_sampling import SMOTENC
 from collections import Counter
 
@@ -19,9 +19,10 @@ def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    df = pd.read_csv('./data/cases_train_processed.csv')
+    df = pd.read_csv('../data/cases_train_processed.csv')
 
-    random_forest(df)
+    # random_forest(df)
+    light_gbm(df)
 
 def random_forest(df):
 
@@ -70,33 +71,24 @@ def random_forest(df):
     print("Evaluating Random Forests Validation")
     validate_x_encoded = encoder.transform(validate_x)
     RandomForests.rf_eval(validate_x_encoded,validate_y,False)
-    """
-    RandomForests.investigate_deaths(validate)
-
-    # 2.4 Vary hyperparameter and check for overfitting
-    train_scores = []
-    validation_scores = []
-    depth_values = range(10,110,10)
-    for depth in depth_values:
-         print("Training RandomForest with depth", depth)
-         clf = RandomForests.overfit_rf_train(train_attr, train_outcomes, depth)
-         train_accuracy = RandomForests.overfit_eval(train_attr, train_outcomes, clf)
-         train_scores.append(train_accuracy)
-
-         validation_accuracy = RandomForests.overfit_eval(v_data, v_outcomes, clf)
-         validation_scores.append(validation_accuracy)
-    plt.figure()
-    plt.plot(depth_values, train_scores)
-    plt.plot(depth_values, validation_scores)
-    plt.title("Accuracy vs Max Depth Hyperparameter for Random Forests")
-    plt.ylabel("Accuracy")
-    plt.xlabel("Max Depth Hyperparameter")
-    plt.legend(['training scores', 'validation scores'])
-    plt.savefig("../plots/overfitting_check_rf.png")
-
 
 
 def light_gbm(df):
+    # Temporary grid of 3 hyperparameters for hyperparameter tuning
+    param_grid = {
+        "boosting_type": ['gbdt'], #GradientBoostingDecisionTree
+        "objective": ['multiclass'],
+        "metric": ['multi_logloss'],
+        "num_class": [4],
+        # "learning_rate": [0.03, 0.05],
+        # "max_depth": [5, 10],
+        # "num_leaves": [20, 30, 40],
+        # "n_estimators": [100, 300]
+        "learning_rate": [0.03],
+        "max_depth": [5],
+        "num_leaves": [20, 30],
+        "n_estimators": [100]
+    }
     X = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio']]
@@ -106,12 +98,13 @@ def light_gbm(df):
     y_encoded = le.transform(y)
 
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
+    # X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=True)
 
     # 2.2 Train Model
-    LightGbm.boosted_train(X_train, y_train, 8)
-
+    # LightGbm.boosted_train(X_train, y_train, param_grid, le)
     # 2.3 Evaluate performance
     LightGbm.boosted_eval(X_train, y_train, le, True, True)
+"""
     LightGbm.boosted_eval(X_valid, y_valid, le, True, False)
 
     # Find feature importance
