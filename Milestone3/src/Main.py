@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import numpy as np
 import RandomForests
-from imblearn.over_sampling import RandomOverSampler
+from imblearn.over_sampling import SMOTENC
 from collections import Counter
 
 def main():
@@ -27,45 +27,62 @@ def random_forest(df):
 
     # Temporary grid of 3 hyperparameters for hyperparameter tuning
     param_grid = {
-        "max_depth": [50, 60, 70, 80, 90],
-        "min_samples_leaf": [2, 3, 4],
-        "n_estimators": [100, 300, 500, 600]
+        "max_features": ['log2'],
+        "max_depth": [50, 60, 70, 80, 90,100],
+        "min_samples_split":[2],
+        "min_samples_leaf": [2,3,4],
+        "n_estimators": [30,40,50,60,70,80,90,100,110,120,130]
     }
 
 
     all_data = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
-                'Incidence_Rate', 'Case-Fatality_Ratio']]
-    print(pd.get_dummies(all_data))
+                'Incidence_Rate', 'Case-Fatality_Ratio','date_int']]
     outcomes = df['outcome']
 
+    all_data['filled_sex_bin'] = le.fit_transform(all_data['filled_sex'])
+    all_data['province_filled_bin'] = le.fit_transform(all_data['province_filled'])
+    all_data['country_filled_bin'] = le.fit_transform(all_data['country_filled'])
+    new_data = all_data.drop(columns=['filled_sex', 'province_filled',
+                'country_filled'])
+
+    categories = all_data[['filled_sex_bin','province_filled_bin','country_filled_bin']]
 
 
-    train_x, validate_x, train_y, validate_y = train_test_split(all_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
+    train_x, validate_x, train_y, validate_y = train_test_split(new_data, outcomes, test_size=0.2, random_state=42, shuffle=True)
     encoder = OneHotEncoder(categories = 'auto', handle_unknown='error', dtype=np.uint8)
-    encoder.fit(all_data)
+    encoder.fit(categories)
     counter = Counter(train_y)
     print(counter)
 
-
     # the [1,2,3] are the index of which columns hold categorical values if im not wrong
-    smotenc = RandomOverSampler(random_state = 101,sampling_strategy={'deceased': 99847})
+    smotenc = SMOTENC([7,8,9],random_state = 101,sampling_strategy={'deceased': 99847})
     X,y = smotenc.fit_resample(train_x, train_y)
-    x_dataframe = pd.DataFrame(X, columns=['age_filled', 'filled_sex', 'province_filled',
-                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
-                'Incidence_Rate', 'Case-Fatality_Ratio'])
-    print(x_dataframe)
+    x_dataframe = pd.DataFrame(X, columns=['age_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio','filled_sex_bin','province_filled_bin',
+                'country_filled_bin'])
+
     y_dataframe = pd.DataFrame(y,columns=['outcome'])
+    print(x_dataframe.dtypes)
 
+    counter = Counter(y_dataframe['outcome'])
+    print(counter)
 
-    train_x_encoded = encoder.transform(x_dataframe)
+    tmp = x_dataframe[['filled_sex_bin','province_filled_bin',
+                'country_filled_bin']]
+    print(tmp)
+    stripped_dataframe = x_dataframe.drop(columns=['filled_sex_bin','province_filled_bin',
+                'country_filled_bin'])
+    train_x_encoded = encoder.transform(tmp).toarray()
+    encoded = pd.DataFrame(train_x_encoded, index=stripped_dataframe.index)
+    print(encoded)
+
+    true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
 
 
     # 2.2 Training Model
     print("Training Random Forests")
-    
-    
-    RandomForests.rf_train(train_x_encoded, y_dataframe, param_grid)
+    RandomForests.rf_train(true_train_x, y_dataframe, param_grid)
 
     
     # 2.3 Evaluate performance
