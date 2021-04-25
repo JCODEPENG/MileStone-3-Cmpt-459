@@ -27,38 +27,28 @@ def rf_train(train_attr, train_outcomes, param_grid):
             'recall': make_scorer(recall_score, average = 'micro')}
 
 
-    clf = RandomForestClassifier(random_state=42)
+    clf = RandomForestClassifier(random_state=42, class_weight='balanced')
 
     random_search = RandomizedSearchCV(clf, param_grid, n_iter=15,
                                         scoring=scoring, refit='accuracy', verbose=10, cv=5,
                                         n_jobs=-1, random_state=42)
-
-
     # Randomized search
     random_search.fit(train_attr, train_outcomes)
     all_results = random_search.cv_results_
-
+    results_df = []
     for i in range(0,len(all_results['params'])):
-        print("Combination: ", end="")
-        print(all_results['params'][i])
-        print("F1 deceased score: ", end="")
-        print(all_results['mean_test_f1_deceased'][i])
-        print("Recall deceased score: ", end="")
-        print(all_results['mean_test_recall_deceased'][i])
-        print("Overall accuracy score: ", end="")
-        print(all_results['mean_test_accuracy'][i])
-        print("Overall recall score: ", end="")
-        print(all_results['mean_test_recall'][i])
-        print()
+        combination = all_results['params'][i]
+        f1_deceased = all_results['mean_test_f1_deceased'][i]
+        recall_deceased = all_results['mean_test_recall_deceased'][i]
+        overall_accuracy = all_results['mean_test_accuracy'][i]
+        overall_recall = all_results['mean_test_recall'][i]
+        results_df.append([combination, f1_deceased, recall_deceased, overall_accuracy, overall_recall])
 
-
-    print(random_search.best_params_)
-    print(random_search.best_score_)
-
-    #actual training
-    train_model = RandomForestClassifier(random_state=42, n_estimators=80, max_depth=80)
-    train_model.fit(train_attr, train_outcomes)
-    pickle.dump(train_model, open(filename, 'wb'))
+    results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
+    print("Best paramaters:", random_search.best_params_)
+    print("Best score:", random_search.best_score_)
+    results_df.to_csv("randomsearch_results.csv")
+    pickle.dump(random_search, open(filename, 'wb'))
 
 
 def overfit_rf_train(train_attr, train_outcomes, estimators):
