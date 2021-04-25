@@ -45,7 +45,8 @@ def rf_train(train_attr, train_outcomes, param_grid):
         results_df.append([combination, f1_deceased, recall_deceased, overall_accuracy, overall_recall])
 
     results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
-    print("best params", random_search.best_params_)
+    print("Best paramaters:", random_search.best_params_)
+    print("Best score:", random_search.best_score_)
     results_df.to_csv("randomsearch_results.csv")
     pickle.dump(random_search, open(filename, 'wb'))
 
