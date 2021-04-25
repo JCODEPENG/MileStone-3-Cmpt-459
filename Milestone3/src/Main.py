@@ -4,30 +4,40 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
+import datetime
 import pandas as pd
 import os
 import datetime
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import numpy as np
-import RandomForests
+import RandomForests, LightGbm
+
 from imblearn.over_sampling import SMOTENC
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.pipeline import Pipeline
 from collections import Counter
 
 epoch = datetime.datetime.utcfromtimestamp(0)
 def unix_time_millis(row):
     dt = row['new_date_confirmation'].strip()
     dt = datetime.datetime.strptime(dt, '%d.%m.%Y')
-    return (dt - epoch).total_seconds()
+    return (dt - epoch).total_seconds() 
+
 
 def main():
     directory = os.path.dirname('../models/')
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-    df = pd.read_csv('./data/cases_train_processed.csv')
+
+    df = pd.read_csv('../data/cases_train_processed.csv')
     df['date_int'] = df.apply(unix_time_millis, axis=1)
-    random_forest(df)
+    print(df)
+
+    # random_forest(df)
+    light_gbm(df)
+
 
 def random_forest(df):
     le = LabelEncoder()
@@ -46,6 +56,7 @@ def random_forest(df):
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio','date_int']]
     outcomes = df['outcome']
+
 
     all_data['filled_sex_bin'] = le.fit_transform(all_data['filled_sex'])
     all_data['province_filled_bin'] = le.fit_transform(all_data['province_filled'])
@@ -66,8 +77,8 @@ def random_forest(df):
                 'Incidence_Rate', 'Case-Fatality_Ratio','date_int','filled_sex_bin','province_filled_bin',
                 'country_filled_bin'])
 
+
     y_dataframe = pd.DataFrame(y,columns=['outcome'])
-    print(x_dataframe.dtypes)
 
     counter = Counter(y_dataframe['outcome'])
     print(counter)
@@ -83,12 +94,12 @@ def random_forest(df):
 
 
     # 2.2 Training Model
-    print("Training Random Forests")
+    print("\n--------------TRAINING MODEL--------------\n")
     RandomForests.rf_train(true_train_x, y_dataframe, param_grid)
 
     
     # 2.3 Evaluate performance
-    print("Evaluating Random Forests Training")
+    print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
     tmp = train_x[['filled_sex_bin','province_filled_bin',
                 'country_filled_bin']]
 
@@ -99,7 +110,8 @@ def random_forest(df):
     true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
     RandomForests.rf_eval(true_train_x, train_y, True)
 
-    print("Evaluating Random Forests Validation")
+    print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
+
     validate_tmp = validate_x[['filled_sex_bin','province_filled_bin',
                 'country_filled_bin']]
     validate_strip = validate_x.drop(columns=['filled_sex_bin','province_filled_bin',
@@ -110,6 +122,75 @@ def random_forest(df):
     new_encoded = pd.DataFrame(validate_x_encoded,index=validate_strip.index)
     true_validate_x = pd.concat([validate_strip,new_encoded], axis=1)
     RandomForests.rf_eval(true_validate_x, validate_y, False)
+
+
+
+def light_gbm(df):
+    # Temporary grid of 3 hyperparameters for hyperparameter tuning
+    param_grid = {
+        "boosting_type": ['gbdt'], #GradientBoostingDecisionTree
+        "objective": ['multiclass'],
+        "metric": ['multi_logloss'],
+        "num_class": [4],
+        "learning_rate": [0.03, 0.05, 0.07],
+        "max_depth": [10, 15, 20],
+        "num_leaves": [30, 40, 50],
+        "n_estimators": [200, 300, 400]
+        # "learning_rate": [0.05],
+        # "max_depth": [10],
+        # "num_leaves": [40],
+        # "n_estimators": [300]
+    }
+
+    X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df)
+
+    print("\n--------------TRAINING MODEL--------------\n")
+    LightGbm.lightgbm_train(X_train, y_train, param_grid, le)
+    print("\n--------------CHECKING MODEL STATS--------------\n")
+    LightGbm.lightgbm_check_model_stats()
+    print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
+    LightGbm.lightgbm_eval(X_train, y_train, le, "train")
+    print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
+    LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
+
+def get_oversampled_encoded_data(df):
+    split_data = False
+    X = df[['age_filled', 'filled_sex', 'province_filled',
+                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
+                'Incidence_Rate', 'Case-Fatality_Ratio', 'date_int']]
+    y = df[['outcome']]
+    le = LabelEncoder()
+    le.fit(y)
+    y_encoded = le.transform(y)
+
+    if (split_data):
+        X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
+    else:
+        X_train = X
+        y_train = y_encoded
+        X_valid = X
+        y_valid = y_encoded
+
+    #Smotenc part
+    # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
+    deceased_encoded = le.transform(['deceased'])[0]
+
+    ## over/undersampling code
+    # hospitalized_encoded = le.transform(['hospitalized'])[0]
+    # nonhospitalized_encoded = le.transform(['nonhospitalized'])[0]
+    # recovered_encoded = le.transform(['recovered'])[0]
+
+    # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 99847})
+    # over = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
+    # under = RandomUnderSampler(sampling_strategy={hospitalized_encoded: 37500, nonhospitalized_encoded: 37500, recovered_encoded: 37500})
+    # steps = [('o', over), ('u', under)]
+    # pipeline = Pipeline(steps=steps)
+    # X_train, y_train = pipeline.fit_resample(X_train, y_train)
+
+    smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
+    X_train,y_train = smotenc.fit_resample(X_train, y_train)
+
+    return X_train, X_valid, y_train, y_valid, le
 
 
 if __name__ == '__main__':
