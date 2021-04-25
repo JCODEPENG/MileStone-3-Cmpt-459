@@ -53,12 +53,22 @@ def lightgbm_train(data, label, param_grid, le):
 def lightgbm_check_model_stats():
     model = pickle.load(open(filename, 'rb'))
     all_results = model.cv_results_
+    results_df = []
     for i in range(0,len(all_results['params'])):
-        print("Combination:", all_results['params'][i])
-        print("F1 deceased score:", all_results['mean_test_f1_deceased'][i])
-        print("Recall deceased score:", all_results['mean_test_recall_deceased'][i])
-        print("Overall accuracy score:", all_results['mean_test_accuracy'][i])
-        print("Overall recall score:", all_results['mean_test_recall'][i], "\n")
+        combination = all_results['params'][i]
+        f1_deceased = all_results['mean_test_f1_deceased'][i]
+        recall_deceased = all_results['mean_test_recall_deceased'][i]
+        overall_accuracy = all_results['mean_test_accuracy'][i]
+        overall_recall = all_results['mean_test_recall'][i]
+        results_df.append([combination, f1_deceased, recall_deceased, overall_accuracy, overall_recall])
+        # print("Combination:", all_results['params'][i])
+        # print("F1 deceased score:", all_results['mean_test_f1_deceased'][i])
+        # print("Recall deceased score:", all_results['mean_test_recall_deceased'][i])
+        # print("Overall accuracy score:", all_results['mean_test_accuracy'][i])
+        # print("Overall recall score:", all_results['mean_test_recall'][i], "\n")
+    results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
+    print(results_df)
+    results_df.to_csv("lightgbm_gridsearch_results.csv")
 
 def lightgbm_eval(X, y, le, dataset):
     for col in categorical_feature:

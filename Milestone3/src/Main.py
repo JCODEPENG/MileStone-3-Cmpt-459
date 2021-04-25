@@ -4,6 +4,7 @@
 
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer
+import datetime
 import pandas as pd
 import os
 from sklearn.preprocessing import LabelEncoder
@@ -12,7 +13,15 @@ from sklearn.preprocessing import OneHotEncoder
 
 import RandomForests, LightGbm
 from imblearn.over_sampling import SMOTENC
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.pipeline import Pipeline
 from collections import Counter
+
+epoch = datetime.datetime.utcfromtimestamp(0)
+def unix_time_millis(row):
+    dt = row['new_date_confirmation'].strip()
+    dt = datetime.datetime.strptime(dt, '%d.%m.%Y')
+    return (dt - epoch).total_seconds() * 1000.0
 
 def main():
     directory = os.path.dirname('../models/')
@@ -20,6 +29,7 @@ def main():
         os.makedirs(directory)
 
     df = pd.read_csv('../data/cases_train_processed.csv')
+    df['date_int'] = df.apply(unix_time_millis, axis=1)
 
     # random_forest(df)
     light_gbm(df)
@@ -90,7 +100,7 @@ def light_gbm(df):
         # "n_estimators": [300]
     }
 
-    X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df, overwrite=True)
+    X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df)
 
     # 2.2 Train Model
     print("\n--------------TRAINING MODEL--------------\n")
@@ -103,23 +113,34 @@ def light_gbm(df):
     print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
     LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
 
-def get_oversampled_encoded_data(df, overwrite=True):
+def get_oversampled_encoded_data(df):
     X = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
-                'Incidence_Rate', 'Case-Fatality_Ratio']]
+                'Incidence_Rate', 'Case-Fatality_Ratio', 'date_int']]
     y = df[['outcome']]
     le = LabelEncoder()
     le.fit(y)
     y_encoded = le.transform(y)
 
     X_train, X_valid, y_train, y_valid = train_test_split(X, y_encoded, test_size=0.2, random_state=42, shuffle=True)
+    # X_train = X
+    # y_train = y_encoded
+
     #Smotenc part
     # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
     deceased_encoded = le.transform(['deceased'])[0]
+    hospitalized_encoded = le.transform(['hospitalized'])[0]
+    nonhospitalized_encoded = le.transform(['nonhospitalized'])[0]
+    recovered_encoded = le.transform(['recovered'])[0]
 
     # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 99847})
+    # over = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
+    # under = RandomUnderSampler(sampling_strategy={hospitalized_encoded: 37500, nonhospitalized_encoded: 37500, recovered_encoded: 37500})
+    # steps = [('o', over), ('u', under)]
+    # pipeline = Pipeline(steps=steps)
+    # X_train, y_train = pipeline.fit_resample(X_train, y_train)
+
     smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
-    # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy="minority")
     X_train,y_train = smotenc.fit_resample(X_train, y_train)
 
     return X_train, X_valid, y_train, y_valid, le
