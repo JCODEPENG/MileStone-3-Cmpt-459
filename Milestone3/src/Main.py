@@ -80,15 +80,30 @@ def light_gbm(df):
         "objective": ['multiclass'],
         "metric": ['multi_logloss'],
         "num_class": [4],
-        # "learning_rate": [0.03, 0.05],
-        # "max_depth": [5, 10],
-        # "num_leaves": [20, 30, 40],
-        # "n_estimators": [100, 300]
-        "learning_rate": [0.03],
-        "max_depth": [5],
-        "num_leaves": [20, 30],
-        "n_estimators": [100]
+        "learning_rate": [0.05, 0.07, 0.09],
+        "max_depth": [10, 15, 20],
+        "num_leaves": [40, 50, 60],
+        "n_estimators": [200, 300, 400]
+        # "learning_rate": [0.05],
+        # "max_depth": [10],
+        # "num_leaves": [40],
+        # "n_estimators": [300]
     }
+
+    X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df, overwrite=True)
+
+    # 2.2 Train Model
+    print("\n--------------TRAINING MODEL--------------\n")
+    LightGbm.lightgbm_train(X_train, y_train, param_grid, le)
+    print("\n--------------CHECKING MODEL STATS--------------\n")
+    LightGbm.lightgbm_check_model_stats()
+    # 2.3 Evaluate performance
+    print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
+    LightGbm.lightgbm_eval(X_train, y_train, le, "train")
+    print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
+    LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
+
+def get_oversampled_encoded_data(df, overwrite=True):
     X = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio']]
@@ -103,16 +118,11 @@ def light_gbm(df):
     deceased_encoded = le.transform(['deceased'])[0]
 
     # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 99847})
-    smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={0: 5000})
+    smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
+    # smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy="minority")
     X_train,y_train = smotenc.fit_resample(X_train, y_train)
 
-
-    # 2.2 Train Model
-    LightGbm.lightgbm_train(X_train, y_train, param_grid, le)
-    LightGbm.lightgbm_check_model_stats()
-    # 2.3 Evaluate performance
-    LightGbm.lightgbm_eval(X_train, y_train, le, "train")
-    LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
+    return X_train, X_valid, y_train, y_valid, le
 
 if __name__ == '__main__':
     main()

@@ -37,7 +37,7 @@ def lightgbm_train(data, label, param_grid, le):
     grid_search = GridSearchCV(
         estimator=model,
         param_grid=param_grid,
-        cv=3,
+        cv=4,
         scoring=scoring,
         refit='f1_deceased',
         verbose=10,
