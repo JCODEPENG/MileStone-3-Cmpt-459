@@ -82,21 +82,37 @@ def random_forest(df):
 
     # 2.2 Training Model
     print("Training Random Forests")
+
     RandomForests.rf_train(true_train_x, y_dataframe, param_grid)
 
     
     # 2.3 Evaluate performance
     print("Evaluating Random Forests Training")
+    tmp = train_x[['filled_sex_bin','province_filled_bin',
+                'country_filled_bin']]
 
-    train_x_encoded = encoder.transform(train_x)
-
-    RandomForests.rf_eval(train_x_encoded, train_y, True)
+    stripped_dataframe = train_x.drop(columns=['filled_sex_bin','province_filled_bin',
+                'country_filled_bin'])
+    train_x_encoded = encoder.transform(tmp).toarray()
+    encoded = pd.DataFrame(train_x_encoded, index=stripped_dataframe.index)
+    print(encoded)
+    true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
+    RandomForests.rf_eval(true_train_x, train_y, True)
 
     print("Evaluating Random Forests Validation")
 
-    validate_x_encoded = encoder.transform(validate_x)
+    validate_tmp = validate_x[['filled_sex_bin','province_filled_bin',
+                'country_filled_bin']]
 
-    RandomForests.rf_eval(validate_x_encoded,validate_y,False)
+    validate_strip = validate_x.drop(columns=['filled_sex_bin','province_filled_bin',
+                'country_filled_bin'])
+
+    validate_x_encoded = encoder.transform(validate_tmp).toarray()
+    print(validate_strip)
+
+    new_encoded = pd.DataFrame(validate_x_encoded,index=validate_strip.index)
+    true_validate_x = pd.concat([validate_strip,new_encoded], axis=1)
+    RandomForests.rf_eval(true_validate_x, validate_y, False)
 
     """
     RandomForests.investigate_deaths(validate)
