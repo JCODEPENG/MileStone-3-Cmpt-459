@@ -7,8 +7,8 @@ import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
 
-
-filename = '../models/lightgbm_classifier.pkl'
+# filename = '../models/lightgbm_classifier.pkl'
+filename = '../models/lightgbm_classifier_full_dataset.pkl'
 feature_name = ['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio']
@@ -68,7 +68,7 @@ def lightgbm_check_model_stats():
         # print("Overall recall score:", all_results['mean_test_recall'][i], "\n")
     results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
     print("best params", model.best_params_)
-    results_df.to_csv("lightgbm_gridsearch_results.csv")
+    results_df.to_csv("../results/lightgbm_gridsearch_results.csv")
 
 def lightgbm_eval(X, y, le, dataset):
     for col in categorical_feature:
@@ -77,10 +77,12 @@ def lightgbm_eval(X, y, le, dataset):
     model = pickle.load(open(filename, 'rb')).best_estimator_
 
     predictions = model.predict(X)
-    # predictions = [np.argmax(line) for line in predictions]
-    # accuracy = accuracy_score(y, predictions)
-    # print("ACCURACY: ", accuracy)
-    evaluation_stats(y, predictions, le, dataset)
+    if (dataset == "test"):
+        predictions = le.inverse_transform(predictions)
+        print(predictions)
+        np.savetxt('../results/predictions.txt', predictions, fmt='%s')
+    else:
+        evaluation_stats(y, predictions, le, dataset)
     
 
 def evaluation_stats(actual, predictions, le, dataset):

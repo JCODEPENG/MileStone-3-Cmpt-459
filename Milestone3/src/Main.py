@@ -29,11 +29,29 @@ def main():
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+    # load datasets
     df = pd.read_csv('../data/cases_train_processed.csv')
     df['date_int'] = df.apply(unix_time_millis, axis=1)
+    test_df = pd.read_csv('../data/cases_test_processed.csv')
+    test_df['date_int'] = test_df.apply(unix_time_millis, axis=1)
 
+    # LightGBM Training
+    split_data = False
+    if (split_data):
+        print("splitting training dataset")
+        X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df, split_data) # 80/20 split
+    else:
+        print("using entire training dataset")
+        X_train, _,        y_train, _,       le = get_oversampled_encoded_data(df, split_data) # full dataset
+    
+    light_gbm_train(X_train, y_train, le)
+
+    # LightGBM Generate Testset Predictions
+    X_test = get_relevant_columns(test_df)
+    light_gbm_eval(X_test, _, le, "test")
+
+    # Random Forest
     # random_forest(df)
-    light_gbm(df)
 
 
 def random_forest(df):
@@ -122,35 +140,45 @@ def random_forest(df):
 
 
 
-def light_gbm(df):
+def light_gbm_train(X_train, y_train, le):
     # Temporary grid of 3 hyperparameters for hyperparameter tuning
     param_grid = {
         "boosting_type": ['gbdt'], #GradientBoostingDecisionTree
         "objective": ['multiclass'],
         "metric": ['multi_logloss'],
         "num_class": [4],
-        "learning_rate": [0.01, 0.03, 0.05, 0.07, 0.9, 0.11],
-        "max_depth": [6, 8, 10, 12],
-        "num_leaves": [25, 30, 35, 40, 45],
+        # "learning_rate": [0.01, 0.03, 0.05, 0.07, 0.9, 0.11],
+        # "max_depth": [6, 8, 10, 12],
+        # "num_leaves": [25, 30, 35, 40, 45],
+        "learning_rate": [0.11],
+        "max_depth": [12],
+        "num_leaves": [45],
     }
-
-    X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df)
-
     print("\n--------------TRAINING MODEL--------------\n")
     LightGbm.lightgbm_train(X_train, y_train, param_grid, le)
     print("\n--------------CHECKING MODEL STATS--------------\n")
     LightGbm.lightgbm_check_model_stats()
-    print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
-    LightGbm.lightgbm_eval(X_train, y_train, le, "train")
-    print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
-    LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
 
-def get_oversampled_encoded_data(df):
-    split_data = True
+def light_gbm_eval(X, y, le, dataset):
+    if (dataset == "train"):
+        print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
+        LightGbm.lightgbm_eval(X, y, le, "train")
+    elif (dataset == "valid"):
+        print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
+        LightGbm.lightgbm_eval(X, y, le, "valid")
+    elif (dataset == "test"):
+        print("\n--------------EVALUATING MODEL ON TEST DATA--------------\n")
+        LightGbm.lightgbm_eval(X, y, le, "test")
 
+
+def get_relevant_columns(df):
     X = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio', 'date_int']]
+    return X
+
+def get_oversampled_encoded_data(df, split_data):
+    X = get_relevant_columns(df)
     y = df[['outcome']]
     le = LabelEncoder()
     le.fit(y)
