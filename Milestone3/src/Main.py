@@ -24,16 +24,13 @@ def unix_time_millis(row):
     dt = datetime.datetime.strptime(dt, '%d.%m.%Y')
     return (dt - epoch).total_seconds() 
 
-
 def main():
     directory = os.path.dirname('../models/')
     if not os.path.exists(directory):
         os.makedirs(directory)
 
-
     df = pd.read_csv('../data/cases_train_processed.csv')
     df['date_int'] = df.apply(unix_time_millis, axis=1)
-    print(df)
 
     # random_forest(df)
     light_gbm(df)
@@ -132,14 +129,9 @@ def light_gbm(df):
         "objective": ['multiclass'],
         "metric": ['multi_logloss'],
         "num_class": [4],
-        "learning_rate": [0.03, 0.05, 0.07],
-        "max_depth": [10, 15, 20],
-        "num_leaves": [30, 40, 50],
-        "n_estimators": [200, 300, 400]
-        # "learning_rate": [0.05],
-        # "max_depth": [10],
-        # "num_leaves": [40],
-        # "n_estimators": [300]
+        "learning_rate": [0.01, 0.03, 0.05, 0.07, 0.9, 0.11],
+        "max_depth": [6, 8, 10, 12],
+        "num_leaves": [25, 30, 35, 40, 45],
     }
 
     X_train, X_valid, y_train, y_valid, le = get_oversampled_encoded_data(df)
@@ -154,7 +146,8 @@ def light_gbm(df):
     LightGbm.lightgbm_eval(X_valid, y_valid, le, "valid")
 
 def get_oversampled_encoded_data(df):
-    split_data = False
+    split_data = True
+
     X = df[['age_filled', 'filled_sex', 'province_filled',
                 'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
                 'Incidence_Rate', 'Case-Fatality_Ratio', 'date_int']]
@@ -191,7 +184,6 @@ def get_oversampled_encoded_data(df):
     X_train,y_train = smotenc.fit_resample(X_train, y_train)
 
     return X_train, X_valid, y_train, y_valid, le
-
 
 if __name__ == '__main__':
     main()
