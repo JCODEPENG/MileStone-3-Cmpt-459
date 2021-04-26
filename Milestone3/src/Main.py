@@ -3,20 +3,15 @@
 # Joshua Peng & Lucia Schmidt
 
 from sklearn.model_selection import train_test_split
-from sklearn.feature_extraction.text import CountVectorizer
-import datetime
 import pandas as pd
 import os
 import datetime
-import matplotlib.pyplot as plt
 from sklearn.preprocessing import OneHotEncoder, LabelEncoder
 import numpy as np
-import RandomForests, LightGbm
-
 from imblearn.over_sampling import SMOTENC
-from imblearn.under_sampling import RandomUnderSampler
 from imblearn.pipeline import Pipeline
 from collections import Counter
+import RandomForests, LightGbm
 
 epoch = datetime.datetime.utcfromtimestamp(0)
 def unix_time_millis(row):
@@ -35,6 +30,8 @@ def main():
     test_df = pd.read_csv('../data/cases_test_processed.csv')
     test_df['date_int'] = test_df.apply(unix_time_millis, axis=1)
 
+    print("\n--------------LIGHTGBM--------------\n")
+
     # LightGBM Training
     split_data = False
     if (split_data):
@@ -50,20 +47,21 @@ def main():
     X_test = get_relevant_columns(test_df)
     light_gbm_eval(X_test, _, le, "test")
 
+    print("\n--------------RANDOM FOREST--------------\n")
     # Random Forest
-    # random_forest(df)
+    random_forest(df)
 
 
 def random_forest(df):
     le = LabelEncoder()
 
-    # Temporary grid of 3 hyperparameters for hyperparameter tuning
+    # Grid of 3 hyperparameters for hyperparameter tuning
     param_grid = {
         "max_features": ['log2'],
         "max_depth": [50, 60, 70, 80, 90,100],
         "min_samples_split":[2],
         "min_samples_leaf": [2,3,4],
-        "n_estimators": [30,40,50,60,70,80,90,100,110,120,130]
+        "n_estimators": [30,40,50,60,70,80,90,100,110]
     }
 
 
@@ -86,6 +84,7 @@ def random_forest(df):
     encoder = OneHotEncoder(categories = 'auto', handle_unknown='error', dtype=np.uint8)
     encoder.fit(categories)
 
+    # the [8,9,10] are the index of which columns hold categorical values
     smotenc = SMOTENC([8,9,10],random_state = 101,sampling_strategy={'deceased': 99847})
     X,y = smotenc.fit_resample(train_x, train_y)
     x_dataframe = pd.DataFrame(X, columns=['age_filled','Confirmed', 'Deaths', 'Recovered','Active',
@@ -94,9 +93,6 @@ def random_forest(df):
 
 
     y_dataframe = pd.DataFrame(y,columns=['outcome'])
-
-    counter = Counter(y_dataframe['outcome'])
-    print(counter)
 
     tmp = x_dataframe[['filled_sex_bin','province_filled_bin',
                 'country_filled_bin']]
@@ -141,7 +137,7 @@ def random_forest(df):
 
 
 def light_gbm_train(X_train, y_train, le):
-    # Temporary grid of 3 hyperparameters for hyperparameter tuning
+    # Grid of 3 hyperparameters for hyperparameter tuning
     param_grid = {
         "boosting_type": ['gbdt'], #GradientBoostingDecisionTree
         "objective": ['multiclass'],
@@ -192,8 +188,7 @@ def get_oversampled_encoded_data(df, split_data):
         X_valid = X
         y_valid = y_encoded
 
-    #Smotenc part
-    # the [0,1,2,3] are the index of which columns hold categorical values if im not wrong
+
     deceased_encoded = le.transform(['deceased'])[0]
 
     ## over/undersampling code
@@ -208,6 +203,7 @@ def get_oversampled_encoded_data(df, split_data):
     # pipeline = Pipeline(steps=steps)
     # X_train, y_train = pipeline.fit_resample(X_train, y_train)
 
+    # the [1,2,3] are the index of which columns hold categorical values
     smotenc = SMOTENC([1,2,3],random_state = 101, sampling_strategy={deceased_encoded: 37500})
     X_train,y_train = smotenc.fit_resample(X_train, y_train)
 

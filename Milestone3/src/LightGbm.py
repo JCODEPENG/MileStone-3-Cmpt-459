@@ -61,12 +61,8 @@ def lightgbm_check_model_stats():
         overall_accuracy = all_results['mean_test_accuracy'][i]
         overall_recall = all_results['mean_test_recall'][i]
         results_df.append([combination, f1_deceased, recall_deceased, overall_accuracy, overall_recall])
-        # print("Combination:", all_results['params'][i])
-        # print("F1 deceased score:", all_results['mean_test_f1_deceased'][i])
-        # print("Recall deceased score:", all_results['mean_test_recall_deceased'][i])
-        # print("Overall accuracy score:", all_results['mean_test_accuracy'][i])
-        # print("Overall recall score:", all_results['mean_test_recall'][i], "\n")
-    results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
+
+    results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overall_recall'])
     print("best params", model.best_params_)
     results_df.to_csv("../results/lightgbm_gridsearch_results.csv")
 

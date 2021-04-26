@@ -1,4 +1,4 @@
-,combination,f1_deceased,recall_deceased,overall_accuracy,overal_recall
+,combination,f1_deceased,recall_deceased,overall_accuracy,overall_recall
 0,"{'boosting_type': 'gbdt', 'learning_rate': 0.01, 'max_depth': 6, 'metric': 'multi_logloss', 'num_class': 4, 'num_leaves': 25, 'objective': 'multiclass'}",0.3338123310152011,0.20784000000000002,0.8976831268943899,0.8976831268943899
 1,"{'boosting_type': 'gbdt', 'learning_rate': 0.01, 'max_depth': 6, 'metric': 'multi_logloss', 'num_class': 4, 'num_leaves': 30, 'objective': 'multiclass'}",0.3341929155935783,0.2079466666666667,0.8978508394777126,0.8978508394777126
 2,"{'boosting_type': 'gbdt', 'learning_rate': 0.01, 'max_depth': 6, 'metric': 'multi_logloss', 'num_class': 4, 'num_leaves': 35, 'objective': 'multiclass'}",0.3340418072953668,0.20773333333333333,0.8980734398155771,0.8980734398155771

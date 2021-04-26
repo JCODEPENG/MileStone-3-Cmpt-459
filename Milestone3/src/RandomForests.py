@@ -27,11 +27,12 @@ def rf_train(train_attr, train_outcomes, param_grid):
             'recall': make_scorer(recall_score, average = 'micro')}
 
 
-    clf = RandomForestClassifier(random_state=42, class_weight='balanced')
+    clf = RandomForestClassifier(random_state=42)
 
     random_search = RandomizedSearchCV(clf, param_grid, n_iter=15,
                                         scoring=scoring, refit='accuracy', verbose=10, cv=5,
                                         n_jobs=-1, random_state=42)
+    print("\n--------------CHECKING MODEL STATS--------------\n")
     # Randomized search
     random_search.fit(train_attr, train_outcomes)
     all_results = random_search.cv_results_
@@ -45,7 +46,7 @@ def rf_train(train_attr, train_outcomes, param_grid):
         results_df.append([combination, f1_deceased, recall_deceased, overall_accuracy, overall_recall])
 
     results_df = pd.DataFrame(results_df, columns=['combination', 'f1_deceased', 'recall_deceased', 'overall_accuracy', 'overal_recall'])
-    print("Best paramaters:", random_search.best_params_)
+    print("Best parameters:", random_search.best_params_)
     print("Best score:", random_search.best_score_)
     results_df.to_csv("randomsearch_results.csv")
     pickle.dump(random_search, open(filename, 'wb'))
@@ -100,44 +101,4 @@ def rf_eval(data, outcomes, name):
     print(classification_report(outcomes, predictions))
 
 
-def investigate_deaths(validate):
-    clf_load = pickle.load(open(filename, 'rb'))
-
-    feature_list = ['age_filled', 'filled_sex', 'province_filled',
-                'country_filled','Confirmed', 'Deaths', 'Recovered','Active',
-                'Incidence_Rate', 'Case-Fatality_Ratio']
-
-     # feature importance adapted from https://www.kaggle.com/ashishpatel26/feature-importance-of-lightgbm
-    feature_imp = pd.DataFrame(sorted(zip(clf_load.feature_importances_, feature_list)),columns=['Value','Feature'])
-    plt.figure(figsize=(20, 10))
-    sns.barplot(x="Value", y="Feature", data=feature_imp.sort_values(by="Value", ascending=False))
-    plt.title('Random Forest Features Importance')
-    plt.tight_layout()
-    plt.savefig('../plots/feature_importances_rf.png')
-
-    deaths = validate[validate['outcome'] == 'deceased']
-    hospitalized = validate[validate['outcome'] == 'hospitalized']
-    hospitalized_avgs = {'age': hospitalized['age_filled'].mean(), 'gender': hospitalized['filled_sex'].mode()[0],
-                         'province_filled': hospitalized['province_filled'].mode()[0],
-                         'country_filled': hospitalized['country_filled'].mode()[0], 'Confirmed': hospitalized['Confirmed'].mode()[0],
-                         'Deaths': hospitalized['Deaths'].mode()[0], 'Recovered': hospitalized['Recovered'].mode()[0],
-                         'Incidence_Rate': hospitalized['Incidence_Rate'].mode()[0],
-                         'Active': hospitalized['Active'].mode()[0]}
-
-    overallCount = 0
-    for idx, row in deaths.iterrows():
-        matches = 0
-        if row['province_filled'] == hospitalized_avgs['province_filled']:
-            matches+=1
-        if row['Recovered'] >= hospitalized_avgs['Recovered'] - 10000 and row['Recovered'] <= hospitalized_avgs['Recovered'] + 10000:
-            matches +=1
-        if row['Deaths'] >= hospitalized_avgs['Deaths'] - 1000 and row['Deaths'] <= hospitalized_avgs['Deaths'] + 1000:
-            matches +=1
-        if row['Active'] >= hospitalized_avgs['Active'] - 10000 and row['Active'] <= hospitalized_avgs['Active'] + 10000:
-            matches +=1
-        if matches > 3:
-            overallCount+=1
-
-    print('Similarity between deceased and hospitalized: ', end=" ")
-    print(round(overallCount/len(deaths['outcome']), 2))
 
