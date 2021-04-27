@@ -8,7 +8,7 @@ import seaborn as sns
 import pickle
 import matplotlib.pyplot as plt
 
-filename = './models/rf_classifier.pkl'
+filename = '../models/rf_classifier.pkl'
 
 def f1Deceased(val, predict):
     ans = precision_recall_fscore_support(val,predict, labels=['deceased'])
@@ -91,10 +91,10 @@ def rf_eval(data, outcomes, name):
     plt.title('Confusion Matrix for Random Forest Model')
     if(name):
         plt.title('Confusion Matrix for Random Forest Model - Train Data')
-        plt.savefig("./plots/confusion_matrix_train_rf.png", bbox_inches = "tight")
+        plt.savefig("../plots/confusion_matrix_train_rf.png", bbox_inches = "tight")
     else:
         plt.title('Confusion Matrix for Random Forest Model - Validation Data')
-        plt.savefig("./plots/confusion_matrix_val_rf.png", bbox_inches = "tight")
+        plt.savefig("../plots/confusion_matrix_val_rf.png", bbox_inches = "tight")
     #
 
     # F1-scores
