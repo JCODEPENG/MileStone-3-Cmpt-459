@@ -111,15 +111,8 @@ def random_forest(df):
     
     # 2.3 Evaluate performance
     print("\n--------------EVALUATING MODEL ON TRAINING DATA--------------\n")
-    tmp = train_x[['filled_sex_bin','province_filled_bin',
-                'country_filled_bin']]
 
-    stripped_dataframe = train_x.drop(columns=['filled_sex_bin','province_filled_bin',
-                'country_filled_bin'])
-    train_x_encoded = encoder.transform(tmp).toarray()
-    encoded = pd.DataFrame(train_x_encoded, index=stripped_dataframe.index)
-    true_train_x = pd.concat([stripped_dataframe,encoded], axis=1)
-    RandomForests.rf_eval(true_train_x, train_y, True)
+    RandomForests.rf_eval(true_train_x, y_dataframe, True)
 
     print("\n--------------EVALUATING MODEL ON VALIDATION DATA--------------\n")
 
